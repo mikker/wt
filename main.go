@@ -11,6 +11,9 @@ import (
 //go:embed embedded/hooks.md
 var hooksHelp string
 
+// version is replaced by GoReleaser at build time.
+var version = "dev"
+
 // stdin/stdout/stderr are package-level so tests can redirect them without
 // touching the real file descriptors (and without racing os.Stdin/Stdout,
 // which fd 3 shim writes bypass entirely).
@@ -49,6 +52,10 @@ func run(args []string) int {
 	name := args[0]
 	if name == "-h" || name == "--help" {
 		printUsage(stdout)
+		return 0
+	}
+	if name == "-v" || name == "--version" {
+		fmt.Fprintf(stdout, "wt %s\n", version)
 		return 0
 	}
 	if name == "help" {
@@ -105,6 +112,7 @@ can cd yourself.
 Run "wt <command> --help" for command-specific help where available.
 Run "wt help hooks" for the .wt/create, .wt/destroy, .wt/config contract.
 Run "wt shellenv" to print the shell integration to eval in your rc file.
+Run "wt --version" to print the installed version.
 `, "\n"))
 }
 
