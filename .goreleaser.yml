@@ -1,0 +1,53 @@
+version: 2
+
+project_name: wt
+
+builds:
+  - id: wt
+    binary: wt
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: archive
+    ids:
+      - wt
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  use: github-native
+
+homebrew_casks:
+  - name: wt
+    ids:
+      - archive
+    binaries:
+      - wt
+    repository:
+      owner: mikker
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Casks
+    homepage: https://github.com/mikker/wt
+    description: Ephemeral Git worktree manager
+    commit_msg_template: "Update wt cask to {{ .Tag }}"
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/wt"]
+          end
