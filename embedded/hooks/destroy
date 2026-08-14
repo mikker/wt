@@ -1,0 +1,12 @@
+#!/bin/sh
+# .wt/destroy — runs before `git worktree remove`, cwd = the worktree being
+# removed. Failure is reported as a warning but never blocks removal.
+#
+# Clean up anything .wt/create started: stop background servers, drop a
+# per-worktree database, etc. Leave this empty (or delete it) if plain
+# `git worktree remove` is enough.
+#
+# Examples (uncomment and adapt):
+#
+# pkill -f "server.pid $(cat tmp/server.pid 2>/dev/null)" 2>/dev/null
+# dropdb "myapp_$(basename "$PWD")" 2>/dev/null

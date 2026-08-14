@@ -1,0 +1,9 @@
+# .wt/config — key = value lines, read by the wt binary.
+#
+# Uncomment to keep this project's worktrees around after `wt done`/`wt
+# ship` instead of tearing them down (useful when `.wt/create` is slow
+# enough that spinning up a fresh worktree per task hurts). `wt done`/`wt
+# ship --rm` still forces teardown one-off; `wt persist` toggles it per
+# worktree.
+#
+# persistent = true

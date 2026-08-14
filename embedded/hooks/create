@@ -1,0 +1,14 @@
+#!/bin/sh
+# .wt/create — runs after `git worktree add`, cwd = the new worktree.
+# $1 = absolute path of the main checkout.
+#
+# Make this worktree runnable right away: install dependencies, copy
+# secrets/keys the main checkout has but git doesn't track, symlink shared
+# state, etc. A failing create hook reports the failure but leaves the
+# worktree in place, so it's safe to fix and re-run by hand.
+#
+# Examples (uncomment and adapt):
+#
+# bundle install
+# cp "$1/config/master.key" config/master.key
+# ln -s "$1/node_modules" node_modules
