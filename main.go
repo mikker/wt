@@ -24,6 +24,7 @@ var (
 // blocked-but-resolvable, 2 usage/environment error.
 var commands = map[string]func(args []string) int{
 	"switch":   cmdSwitch,
+	"s":        cmdSwitch,
 	"rm":       cmdRm,
 	"ls":       cmdLs,
 	"done":     cmdDone,
@@ -84,7 +85,7 @@ func printUsage(w io.Writer) {
 usage: wt <command> [args]
 
 commands:
-  switch [<name>] [--persist]   create or enter a worktree by name
+  switch [<name>] [--persist]   create or enter a worktree by name (alias: s)
   (bare wt)                     alias for "wt switch" with no name (fzf pick)
   rm [<name>] [--force]         remove a worktree
   ls                            list worktrees
