@@ -1,0 +1,18 @@
+[tools]
+go = "1.26"
+
+[tasks.test]
+description = "Run the test suite"
+run = "go test ./..."
+
+[tasks.build]
+description = "Build the wt binary"
+run = "go build -o wt ."
+
+[tasks.check]
+description = "Run static analysis and tests"
+run = ["go vet ./...", "go test ./..."]
+
+[tasks.clean]
+description = "Remove build artifacts"
+run = "rm -rf wt dist"
