@@ -9,36 +9,33 @@ import (
 	"strings"
 )
 
-// cmdSwitch implements `wt switch [<name>] [--persist]` and, with no name,
-// the fzf pick that bare `wt` also uses.
+// cmdSwitch implements `wt switch [<name>]`, entering an existing worktree
+// by name or via a picker.
 func cmdSwitch(args []string) int {
 	for _, a := range args {
 		if a == "-h" || a == "--help" {
-			fmt.Fprintln(stdout, "usage: wt switch [<name>] [--persist]")
+			fmt.Fprintln(stdout, "usage: wt switch [<name>]")
 			return 0
 		}
 	}
 
-	positional, flags, unknown := splitFlags(args, "persist")
+	positional, _, unknown := splitFlags(args)
 	if len(unknown) > 0 {
-		fmt.Fprintf(stderr, "wt switch: unknown flag %q. usage: wt switch [<name>] [--persist]\n", unknown[0])
+		fmt.Fprintf(stderr, "wt switch: unknown flag %q. usage: wt switch [<name>]\n", unknown[0])
 		return 2
 	}
 	if len(positional) > 1 {
-		fmt.Fprintf(stderr, "wt switch: too many arguments: %s. usage: wt switch [<name>] [--persist]\n", strings.Join(positional[1:], " "))
+		fmt.Fprintf(stderr, "wt switch: too many arguments: %s. usage: wt switch [<name>]\n", strings.Join(positional[1:], " "))
 		return 2
 	}
 	var name string
 	if len(positional) == 1 {
 		name = positional[0]
 	}
-	persist := flags["persist"]
-
 	worktrees, _, code := loadWorktrees("wt switch")
 	if code != 0 {
 		return code
 	}
-	mainCheckout := worktrees[0].Path
 
 	if name == "" {
 		selected, err := pickWorktree(worktrees)
@@ -50,56 +47,12 @@ func cmdSwitch(args []string) int {
 		return 0
 	}
 
-	if existing := findWorktreeByName(worktrees, name); existing != nil {
-		enterWorktree(*existing)
-		return 0
-	}
-
-	trunk, err := resolveTrunk(mainCheckout)
-	if err != nil {
-		fmt.Fprintf(stderr, "wt switch: %v\n", err)
+	existing := findWorktreeByName(worktrees, name)
+	if existing == nil {
+		fmt.Fprintf(stderr, "wt switch: worktree %q does not exist; create it with `wt create %s`.\n", name, name)
 		return 2
 	}
-
-	wtPath := worktreePath(mainCheckout, name)
-	if branchExists(mainCheckout, name) {
-		if _, err := runGit(mainCheckout, "worktree", "add", wtPath, name); err != nil {
-			fmt.Fprintf(stderr, "wt switch: attempted `git worktree add %s %s` (existing branch), git refused: %v. Check `git worktree list` and `git branch` for conflicts, then retry.\n", wtPath, name, err)
-			return 2
-		}
-	} else {
-		if !branchExists(mainCheckout, trunk) {
-			// trunk came from refs/remotes/origin/HEAD, but no local branch
-			// of that name exists. `git worktree add <path> -b <name>
-			// <trunk>` would fail to resolve <trunk> as a local ref and
-			// DWIM to the remote-tracking branch instead, silently ignoring
-			// -b and leaving the new worktree on a branch named <trunk>,
-			// not <name>.
-			fmt.Fprintf(stderr, "wt switch: trunk %q comes from origin/HEAD but no local branch exists; create it with `git branch %s origin/%s` and retry.\n", trunk, trunk, trunk)
-			return 2
-		}
-		if _, err := runGit(mainCheckout, "worktree", "add", wtPath, "-b", name, trunk); err != nil {
-			fmt.Fprintf(stderr, "wt switch: attempted `git worktree add %s -b %s %s`, git refused: %v. Check `git worktree list` and `git branch` for conflicts, then retry.\n", wtPath, name, trunk, err)
-			return 2
-		}
-	}
-
-	if persist {
-		key := "branch." + name + ".wt-persist"
-		if err := setGitConfig(mainCheckout, key, "true"); err != nil {
-			fmt.Fprintf(stderr, "wt switch: worktree created, but `git config %s true` failed: %v. Run it manually, or `wt persist` later.\n", key, err)
-		}
-	}
-
-	if err := runCreateHook(wtPath, mainCheckout); err != nil {
-		fmt.Fprintf(stderr, "wt switch: attempted `.wt/create %s` in %s, it failed: %v. The worktree was left in place; fix the issue and re-run `.wt/create %s` manually from %s, or `wt rm %s` to abandon it.\n", mainCheckout, wtPath, err, mainCheckout, wtPath, name)
-		emitCd(wtPath)
-		emitExportWorktree(name)
-		return 1
-	}
-
-	emitCd(wtPath)
-	emitExportWorktree(name)
+	enterWorktree(*existing)
 	return 0
 }
 

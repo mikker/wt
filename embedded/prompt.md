@@ -36,7 +36,7 @@ Do this:
    do write it.
 
 4. Prove it works end-to-end:
-   - `wt switch tmp-<something>` to create a throwaway worktree.
+   - `wt create tmp-<something>` to create a throwaway worktree.
    - Verify the app/tests actually run there (whatever "runs" means for this
      project — boot the server, run the test suite, etc.).
    - `wt rm tmp-<something>` to tear it down again.

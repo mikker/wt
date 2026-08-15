@@ -30,7 +30,7 @@ func cmdPersist(args []string) int {
 		return 2
 	}
 	if cur.IsMain {
-		fmt.Fprintln(stderr, "wt persist: this is the trunk worktree; persistence only applies to feature worktrees created with `wt switch`.")
+		fmt.Fprintln(stderr, "wt persist: this is the trunk worktree; persistence only applies to feature worktrees created with `wt create`.")
 		return 2
 	}
 

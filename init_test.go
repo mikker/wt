@@ -17,7 +17,7 @@ func TestSkillPrintsFrontmatterAndBody(t *testing.T) {
 	if !strings.HasPrefix(out, "---\nname: wt\n") {
 		t.Errorf("expected yaml frontmatter at the top, got:\n%s", out)
 	}
-	for _, want := range []string{"wt switch", "wt done", "wt ship", "--continue"} {
+	for _, want := range []string{"wt create", "wt switch", "wt done", "wt ship", "--continue"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("expected the skill body to mention %q, got:\n%s", want, out)
 		}
@@ -65,7 +65,7 @@ func TestPromptPrints(t *testing.T) {
 		t.Fatalf("cmdPrompt exit = %d, want 0; stderr = %s", code, stderrBuf.String())
 	}
 	out := stdoutBuf.String()
-	for _, want := range []string{"wt --help", "wt help hooks", ".wt/create", ".wt/destroy", "wt switch", "wt rm", "persistent = true"} {
+	for _, want := range []string{"wt --help", "wt help hooks", ".wt/create", ".wt/destroy", "wt create", "wt rm", "persistent = true"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("expected prompt output to mention %q, got:\n%s", want, out)
 		}

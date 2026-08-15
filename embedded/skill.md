@@ -5,10 +5,10 @@ description: Manage Git worktrees with wt. Use to create, switch, list, remove, 
 
 Use `wt` to carry out the requested worktree operation:
 
-- Create or enter a worktree: `wt switch <name>`. Derive a short,
+- Create a worktree: `wt create <name>`. Derive a short,
   branch-compatible name from the task when possible; ask for one when the
   request has no naming context.
-- Pick an existing worktree: `wt switch`.
+- Enter an existing worktree: `wt switch <name>`, or `wt switch` to pick one.
 - List worktrees: `wt ls`.
 - Remove a worktree without merging: `wt rm [<name>]`.
 - Toggle persistence for the current worktree: `wt persist`.

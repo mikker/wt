@@ -11,8 +11,8 @@ func TestRmDirtyRefusal(t *testing.T) {
 	dir := initRepo(t)
 	chdir(t, dir)
 	resetStdio(t)
-	if code := cmdSwitch([]string{"feature"}); code != 0 {
-		t.Fatalf("setup switch failed: %d %s", code, stderrBuf.String())
+	if code := cmdCreate([]string{"feature"}); code != 0 {
+		t.Fatalf("setup create failed: %d %s", code, stderrBuf.String())
 	}
 	wtPath := worktreePath(dir, "feature")
 	writeFile(t, filepath.Join(wtPath, "dirty.txt"), "x")
@@ -34,8 +34,8 @@ func TestRmForce(t *testing.T) {
 	dir := initRepo(t)
 	chdir(t, dir)
 	resetStdio(t)
-	if code := cmdSwitch([]string{"feature"}); code != 0 {
-		t.Fatalf("setup switch failed: %d %s", code, stderrBuf.String())
+	if code := cmdCreate([]string{"feature"}); code != 0 {
+		t.Fatalf("setup create failed: %d %s", code, stderrBuf.String())
 	}
 	wtPath := worktreePath(dir, "feature")
 	writeFile(t, filepath.Join(wtPath, "dirty.txt"), "x")
@@ -55,8 +55,8 @@ func TestRmUnmergedBranchReport(t *testing.T) {
 	dir := initRepo(t)
 	chdir(t, dir)
 	resetStdio(t)
-	if code := cmdSwitch([]string{"feature"}); code != 0 {
-		t.Fatalf("setup switch failed: %d %s", code, stderrBuf.String())
+	if code := cmdCreate([]string{"feature"}); code != 0 {
+		t.Fatalf("setup create failed: %d %s", code, stderrBuf.String())
 	}
 	wtPath := worktreePath(dir, "feature")
 	writeFile(t, filepath.Join(wtPath, "new.txt"), "content\n")
@@ -92,8 +92,8 @@ func TestRmDestroyHookFailureNonFatal(t *testing.T) {
 
 	chdir(t, dir)
 	resetStdio(t)
-	if code := cmdSwitch([]string{"feature"}); code != 0 {
-		t.Fatalf("setup switch failed: %d %s", code, stderrBuf.String())
+	if code := cmdCreate([]string{"feature"}); code != 0 {
+		t.Fatalf("setup create failed: %d %s", code, stderrBuf.String())
 	}
 	wtPath := worktreePath(dir, "feature")
 

@@ -7,14 +7,14 @@ import (
 	"testing"
 )
 
-func TestSwitchFresh(t *testing.T) {
+func TestCreateFresh(t *testing.T) {
 	dir := initRepo(t)
 	chdir(t, dir)
 	resetStdio(t)
 
-	code := cmdSwitch([]string{"feature-x"})
+	code := cmdCreate([]string{"feature-x"})
 	if code != 0 {
-		t.Fatalf("cmdSwitch exit = %d, want 0; stderr = %s", code, stderrBuf.String())
+		t.Fatalf("cmdCreate exit = %d, want 0; stderr = %s", code, stderrBuf.String())
 	}
 
 	wtPath := worktreePath(dir, "feature-x")
@@ -30,7 +30,20 @@ func TestSwitchFresh(t *testing.T) {
 	}
 }
 
-func TestSwitchExistingBranch(t *testing.T) {
+func TestCreateAlias(t *testing.T) {
+	dir := initRepo(t)
+	chdir(t, dir)
+	resetStdio(t)
+
+	if code := run([]string{"c", "feature-c"}); code != 0 {
+		t.Fatalf("wt c exit = %d, want 0; stderr = %s", code, stderrBuf.String())
+	}
+	if _, err := os.Stat(worktreePath(dir, "feature-c")); err != nil {
+		t.Fatalf("expected alias to create worktree: %v", err)
+	}
+}
+
+func TestCreateExistingBranch(t *testing.T) {
 	dir := initRepo(t)
 	testGit(t, dir, "branch", "feature-y")
 	beforeHead := testGit(t, dir, "rev-parse", "feature-y")
@@ -38,9 +51,9 @@ func TestSwitchExistingBranch(t *testing.T) {
 	chdir(t, dir)
 	resetStdio(t)
 
-	code := cmdSwitch([]string{"feature-y"})
+	code := cmdCreate([]string{"feature-y"})
 	if code != 0 {
-		t.Fatalf("cmdSwitch exit = %d, want 0; stderr = %s", code, stderrBuf.String())
+		t.Fatalf("cmdCreate exit = %d, want 0; stderr = %s", code, stderrBuf.String())
 	}
 
 	wtPath := worktreePath(dir, "feature-y")
@@ -55,8 +68,8 @@ func TestSwitchExistingWorktree(t *testing.T) {
 	chdir(t, dir)
 	resetStdio(t)
 
-	if code := cmdSwitch([]string{"feature-z"}); code != 0 {
-		t.Fatalf("first cmdSwitch exit = %d; stderr = %s", code, stderrBuf.String())
+	if code := cmdCreate([]string{"feature-z"}); code != 0 {
+		t.Fatalf("cmdCreate exit = %d; stderr = %s", code, stderrBuf.String())
 	}
 	wtPath := worktreePath(dir, "feature-z")
 
@@ -70,7 +83,7 @@ func TestSwitchExistingWorktree(t *testing.T) {
 	}
 }
 
-func TestSwitchCreateHookFailure(t *testing.T) {
+func TestCreateHookFailure(t *testing.T) {
 	dir := initRepo(t)
 	hookPath := filepath.Join(dir, ".wt", "create")
 	writeFile(t, hookPath, "#!/bin/sh\nexit 1\n")
@@ -83,9 +96,9 @@ func TestSwitchCreateHookFailure(t *testing.T) {
 	chdir(t, dir)
 	resetStdio(t)
 
-	code := cmdSwitch([]string{"broken"})
+	code := cmdCreate([]string{"broken"})
 	if code != 1 {
-		t.Fatalf("cmdSwitch exit = %d, want 1; stderr = %s", code, stderrBuf.String())
+		t.Fatalf("cmdCreate exit = %d, want 1; stderr = %s", code, stderrBuf.String())
 	}
 
 	wtPath := worktreePath(dir, "broken")
@@ -97,7 +110,7 @@ func TestSwitchCreateHookFailure(t *testing.T) {
 	}
 }
 
-func TestSwitchTrunkDWIMGuard(t *testing.T) {
+func TestCreateTrunkDWIMGuard(t *testing.T) {
 	bare := t.TempDir()
 	if _, err := runGit(bare, "init", "-q", "--bare", "-b", "main"); err != nil {
 		t.Fatal(err)
@@ -120,9 +133,9 @@ func TestSwitchTrunkDWIMGuard(t *testing.T) {
 	chdir(t, dir)
 	resetStdio(t)
 
-	code := cmdSwitch([]string{"newfeature"})
+	code := cmdCreate([]string{"newfeature"})
 	if code != 2 {
-		t.Fatalf("cmdSwitch exit = %d, want 2; stderr = %s", code, stderrBuf.String())
+		t.Fatalf("cmdCreate exit = %d, want 2; stderr = %s", code, stderrBuf.String())
 	}
 	if !strings.Contains(stderrBuf.String(), "origin/HEAD") {
 		t.Errorf("expected origin/HEAD DWIM-guard message, got %q", stderrBuf.String())
@@ -134,16 +147,52 @@ func TestSwitchTrunkDWIMGuard(t *testing.T) {
 	}
 }
 
-func TestSwitchPersistFlag(t *testing.T) {
+func TestCreatePersistFlag(t *testing.T) {
 	dir := initRepo(t)
 	chdir(t, dir)
 	resetStdio(t)
 
-	code := cmdSwitch([]string{"feature-p", "--persist"})
+	code := cmdCreate([]string{"feature-p", "--persist"})
 	if code != 0 {
-		t.Fatalf("cmdSwitch exit = %d, want 0; stderr = %s", code, stderrBuf.String())
+		t.Fatalf("cmdCreate exit = %d, want 0; stderr = %s", code, stderrBuf.String())
 	}
 	if !gitConfigBool(dir, "branch.feature-p.wt-persist") {
 		t.Errorf("expected branch.feature-p.wt-persist=true after --persist")
+	}
+}
+
+func TestSwitchMissingWorktreeDoesNotCreate(t *testing.T) {
+	dir := initRepo(t)
+	chdir(t, dir)
+	resetStdio(t)
+
+	code := cmdSwitch([]string{"missing"})
+	if code != 2 {
+		t.Fatalf("cmdSwitch exit = %d, want 2; stderr = %s", code, stderrBuf.String())
+	}
+	if !strings.Contains(stderrBuf.String(), "wt create missing") {
+		t.Errorf("expected create guidance, got %q", stderrBuf.String())
+	}
+	if _, err := os.Stat(worktreePath(dir, "missing")); !os.IsNotExist(err) {
+		t.Fatalf("switch created a missing worktree, stat err = %v", err)
+	}
+}
+
+func TestCreateExistingWorktreeRefusesToSwitch(t *testing.T) {
+	dir := initRepo(t)
+	chdir(t, dir)
+	resetStdio(t)
+
+	if code := cmdCreate([]string{"existing"}); code != 0 {
+		t.Fatalf("first cmdCreate exit = %d; stderr = %s", code, stderrBuf.String())
+	}
+	resetStdio(t)
+
+	code := cmdCreate([]string{"existing"})
+	if code != 2 {
+		t.Fatalf("second cmdCreate exit = %d, want 2; stderr = %s", code, stderrBuf.String())
+	}
+	if !strings.Contains(stderrBuf.String(), "wt switch existing") {
+		t.Errorf("expected switch guidance, got %q", stderrBuf.String())
 	}
 }

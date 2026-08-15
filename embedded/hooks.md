@@ -26,7 +26,7 @@ Persistence resolution, first match wins:
 
   1. --rm / --keep flag on `wt done` / `wt ship`
   2. git config branch.<name>.wt-persist (set by `wt persist`, or
-     `wt switch --persist` at creation time)
+     `wt create --persist` at creation time)
   3. persistent = true in .wt/config
   4. default: ephemeral (torn down after a successful `wt done`/`wt ship`)
 

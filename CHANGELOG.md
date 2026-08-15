@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Renamed and expanded the exported agent skill to `wt`, supporting requests such as `/wt ship`, `/wt merge`, and `/wt create a new workspace`; exporting now takes an explicit skills directory.
+- Added `wt create` (alias `wt c`); `wt switch` now only enters existing worktrees and never creates one implicitly.
 
 ## 0.2
 

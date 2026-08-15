@@ -36,16 +36,15 @@ opt-in mode.
 
 ## Command surface
 
-Creation lives behind an action keyword (`wt switch <name>`) rather than bare
-`wt <name>`, so worktree names never collide with command names (`done`,
-`ls`, …).
+Creation and navigation are separate actions: `wt create <name>` always
+creates, while `wt switch <name>` only enters an existing worktree. Worktree
+names never collide with command names (`done`, `ls`, …).
 
-### `wt switch <name>` — create or enter
+### `wt create <name>` — create and enter (alias: `wt c`)
 
-Create-or-switch semantics, named after `git switch`:
-
-1. If a worktree named `<name>` already exists: cd into it (via shim). Done.
-2. Else: `git worktree add ../<project>-worktrees/<name> -b <name> <trunk>`;
+1. Refuse if a worktree named `<name>` already exists, with guidance to use
+   `wt switch <name>`.
+2. Run `git worktree add ../<project>-worktrees/<name> -b <name> <trunk>`;
    if the branch already exists, add the worktree on the existing branch
    instead (current gwt behavior).
 3. Run `.wt/create <base_dir>` if present and executable, from inside the new
@@ -56,6 +55,11 @@ Create-or-switch semantics, named after `git switch`:
 
 Flags: `--persist` marks the worktree persistent at creation
 (`git config branch.<name>.wt-persist true`).
+
+### `wt switch <name>` — enter
+
+Enter an existing worktree. Refuse if it does not exist, with guidance to use
+`wt create <name>`; switching never creates anything.
 
 ### `wt switch` (no name) — pick
 
@@ -150,7 +154,7 @@ any agent. The prompt instructs the agent to:
    `config/master.key`), symlinks or redirects for shared state, anything else
    `git worktree add` doesn't give you.
 3. Write `.wt/destroy` if teardown needs work (kill servers, drop DBs).
-4. Prove it: `wt switch tmp-<something>`, verify the app runs, `wt rm` it.
+4. Prove it: `wt create tmp-<something>`, verify the app runs, `wt rm` it.
 5. Consider `persistent = true` if create takes long enough to hurt.
 
 ### `wt shellenv` — emit the shim
@@ -227,7 +231,8 @@ prompt, and shim templates in `embed.FS`.
 wt/
   main.go            # dispatch, flag parsing
   git.go             # git helpers: run, worktree list parsing, trunk resolution
-  switch.go          # wt switch (create-or-enter), wt (fzf pick)
+  create.go          # wt create
+  switch.go          # wt switch and fzf pick
   done.go            # done + ship (ship = done with sync bracket)
   rm.go              # wt rm
   ls.go              # wt ls
@@ -245,7 +250,7 @@ wt/
 
 ### Milestones
 
-1. **Core spawn/teardown**: git helpers, trunk resolution, `wt switch`,
+1. **Core spawn/teardown**: git helpers, trunk resolution, `wt create`/`switch`,
    `wt rm`, hooks (`create`/`destroy`), `wt ls`. Usable without shim
    (prints paths).
 2. **Shim**: `wt shellenv zsh`, cd side-band, `WORKTREE` export, fzf pick.
@@ -291,8 +296,8 @@ blocked it, and the exact commands to resolve and resume. Exit codes: 0 ok,
   `removeWorktree`), not just at command-level target resolution; `wt rm`
   refuses to remove anything when trunk can't even be resolved.
 - No pushes outside `wt ship`; `ship` pushes trunk only.
-- Creation namespaced under `wt switch <name>` (create-or-switch, per
-  `git switch`) so worktree names can't collide with command names.
+- Creation and switching are explicit, separate commands so navigation can
+  never create a worktree by mistake.
 - Skills live inline in the binary: `wt skill` prints, agent docs carry a
   "run `wt skill`" pointer, `--export` for those who want a file. No install
   ceremony.

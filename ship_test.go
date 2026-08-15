@@ -23,8 +23,8 @@ func setupShipRepo(t *testing.T) (mainDir, bareDir, wtPath string) {
 
 	chdir(t, mainDir)
 	resetStdio(t)
-	if code := cmdSwitch([]string{"feature"}); code != 0 {
-		t.Fatalf("setup switch failed: %d %s", code, stderrBuf.String())
+	if code := cmdCreate([]string{"feature"}); code != 0 {
+		t.Fatalf("setup create failed: %d %s", code, stderrBuf.String())
 	}
 	wtPath = worktreePath(mainDir, "feature")
 	writeFile(t, filepath.Join(wtPath, "feature.txt"), "feature work\n")
@@ -120,8 +120,8 @@ func TestShipNoOriginRemote(t *testing.T) {
 	mainDir := initRepo(t)
 	chdir(t, mainDir)
 	resetStdio(t)
-	if code := cmdSwitch([]string{"feature"}); code != 0 {
-		t.Fatalf("setup switch failed: %d %s", code, stderrBuf.String())
+	if code := cmdCreate([]string{"feature"}); code != 0 {
+		t.Fatalf("setup create failed: %d %s", code, stderrBuf.String())
 	}
 	chdir(t, worktreePath(mainDir, "feature"))
 

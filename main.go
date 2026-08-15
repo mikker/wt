@@ -26,6 +26,8 @@ var (
 // commands maps subcommand name to handler. Exit codes: 0 ok, 1
 // blocked-but-resolvable, 2 usage/environment error.
 var commands = map[string]func(args []string) int{
+	"create":   cmdCreate,
+	"c":        cmdCreate,
 	"switch":   cmdSwitch,
 	"s":        cmdSwitch,
 	"rm":       cmdRm,
@@ -92,7 +94,8 @@ func printUsage(w io.Writer) {
 usage: wt <command> [args]
 
 commands:
-  switch [<name>] [--persist]   create or enter a worktree by name (alias: s)
+  create <name> [--persist]     create and enter a worktree (alias: c)
+  switch [<name>]               enter an existing worktree (alias: s)
   rm [<name>] [--force]         remove a worktree
   ls                            list worktrees
   done [--rm|--keep]            rebase, merge to trunk, tear down (offline)

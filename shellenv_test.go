@@ -71,7 +71,7 @@ func TestShellenvRealZsh(t *testing.T) {
 set -e
 eval "$('` + binPath + `' shellenv zsh)"
 cd '` + mainDir + `'
-wt switch feature >/dev/null
+wt create feature >/dev/null
 echo "PWD=$PWD"
 echo "WORKTREE=$WORKTREE"
 `

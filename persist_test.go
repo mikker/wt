@@ -9,8 +9,8 @@ func TestPersistToggle(t *testing.T) {
 	dir := initRepo(t)
 	chdir(t, dir)
 	resetStdio(t)
-	if code := cmdSwitch([]string{"feature"}); code != 0 {
-		t.Fatalf("setup switch failed: %d %s", code, stderrBuf.String())
+	if code := cmdCreate([]string{"feature"}); code != 0 {
+		t.Fatalf("setup create failed: %d %s", code, stderrBuf.String())
 	}
 	chdir(t, worktreePath(dir, "feature"))
 
