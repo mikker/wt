@@ -44,8 +44,12 @@ func cmdRm(args []string) int {
 		return 2
 	}
 	// The trunk worktree itself may legitimately not exist (trunk not checked
-	// out anywhere); it's only used to pick the branch-delete directory.
+	// out anywhere); use the surviving main checkout as the fallback directory.
 	trunkWorktree, _ := findTrunkWorktree(worktrees, trunk)
+	trunkDir := mainCheckout
+	if trunkWorktree != nil {
+		trunkDir = trunkWorktree.Path
+	}
 
 	target, err := resolveRmTarget(worktrees, cwd, name, trunk)
 	if err != nil {
@@ -67,6 +71,7 @@ func cmdRm(args []string) int {
 		fmt.Fprintln(stderr, "wt rm: aborted.")
 		return 1
 	}
+	removal := newRemovalDetails(mainCheckout, trunk, trunkDir, *target)
 
 	runDestroyHook(target.Path)
 
@@ -80,11 +85,7 @@ func cmdRm(args []string) int {
 		// it runs in, so run it in the trunk worktree (falling back to the
 		// main checkout when trunk isn't checked out anywhere) rather than
 		// mainCheckout, which may be parked on some other branch entirely.
-		branchDeleteDir := mainCheckout
-		if trunkWorktree != nil {
-			branchDeleteDir = trunkWorktree.Path
-		}
-		if err := deleteBranch(branchDeleteDir, target.Branch, trunk); err != nil {
+		if err := deleteBranch(trunkDir, target.Branch, trunk); err != nil {
 			fmt.Fprintf(stderr, "wt rm: worktree removed, but `git branch -d %s` refused (likely unmerged commits): %v. Delete manually with `git branch -D %s` if you're sure.\n", target.Branch, err, target.Branch)
 		}
 	}
@@ -92,6 +93,7 @@ func cmdRm(args []string) int {
 	if inside := currentWorktree(worktrees, cwd); inside != nil && inside.Path == target.Path {
 		enterWorktree(worktrees[0])
 	}
+	emitRemovalEvent("wt rm", "rm", removal)
 
 	return 0
 }

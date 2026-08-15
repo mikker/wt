@@ -74,8 +74,8 @@ func run(args []string) int {
 }
 
 // cmdHelp implements `wt help [topic]`. Bare `wt help` is the same as `wt
-// --help`. The only topic with dedicated help is "hooks"; anything else is
-// a usage error.
+// --help`. Dedicated topics document hooks and lifecycle events; anything
+// else is a usage error.
 func cmdHelp(args []string) int {
 	if len(args) == 0 {
 		printUsage(stdout)
@@ -85,7 +85,11 @@ func cmdHelp(args []string) int {
 		fmt.Fprint(stdout, hooksHelp)
 		return 0
 	}
-	fmt.Fprintf(stderr, "wt help: unknown help topic %q. Run `wt help` for general usage, or `wt help hooks`.\n", args[0])
+	if len(args) == 1 && args[0] == "events" {
+		fmt.Fprint(stdout, eventsHelp)
+		return 0
+	}
+	fmt.Fprintf(stderr, "wt help: unknown help topic %q. Run `wt help` for general usage, `wt help hooks`, or `wt help events`.\n", args[0])
 	return 2
 }
 
@@ -94,7 +98,8 @@ func printUsage(w io.Writer) {
 usage: wt <command> [args]
 
 commands:
-  create <name> [--persist]     create and enter a worktree (alias: c)
+  create <name> [--persist] [-- command [args...]]
+                                create and enter a worktree (alias: c)
   switch [<name>]               enter an existing worktree (alias: s)
   rm [<name>] [--force]         remove a worktree
   ls                            list worktrees
@@ -113,6 +118,7 @@ can cd yourself.
 
 Run "wt <command> --help" for command-specific help where available.
 Run "wt help hooks" for the .wt/create, .wt/destroy, .wt/config contract.
+Run "wt help events" for the WT_EVENT_HANDLER lifecycle-event contract.
 Run "wt shellenv" to print the shell integration to eval in your rc file.
 Run "wt --version" to print the installed version.
 `, "\n"))

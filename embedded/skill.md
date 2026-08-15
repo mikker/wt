@@ -5,7 +5,8 @@ description: Manage Git worktrees with wt. Use to create, switch, list, remove, 
 
 Use `wt` to carry out the requested worktree operation:
 
-- Create a worktree: `wt create <name>`. Derive a short,
+- Create a worktree: `wt create <name>`. To immediately start a command there,
+  use `wt create <name> -- <command> [args...]`. Derive a short,
   branch-compatible name from the task when possible; ask for one when the
   request has no naming context.
 - Enter an existing worktree: `wt switch <name>`, or `wt switch` to pick one.
@@ -14,6 +15,9 @@ Use `wt` to carry out the requested worktree operation:
 - Toggle persistence for the current worktree: `wt persist`.
 - Merge the current worktree into local trunk: `wt done`.
 - Sync with the remote, merge, and push trunk: `wt ship`.
+
+When integrating an external tool with successful worktree teardown, consult
+`wt help events` for the opt-in `WT_EVENT_HANDLER` JSON event contract.
 
 For merge and ship requests, run the command and handle resolvable stops:
 

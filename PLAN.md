@@ -40,7 +40,7 @@ Creation and navigation are separate actions: `wt create <name>` always
 creates, while `wt switch <name>` only enters an existing worktree. Worktree
 names never collide with command names (`done`, `ls`, …).
 
-### `wt create <name>` — create and enter (alias: `wt c`)
+### `wt create <name> [-- command [args...]]` — create and enter (alias: `wt c`)
 
 1. Refuse if a worktree named `<name>` already exists, with guidance to use
    `wt switch <name>`.
@@ -51,7 +51,8 @@ names never collide with command names (`done`, `ls`, …).
    worktree, with the main checkout's absolute path as `$1`. A failing create
    hook reports the failure but leaves the worktree in place (you can inspect
    and fix; `wt rm` to abandon).
-4. Print the worktree path for the shim to cd into.
+4. If `-- command [args...]` was supplied, run it from inside the worktree.
+5. Print the worktree path for the shim to cd into.
 
 Flags: `--persist` marks the worktree persistent at creation
 (`git config branch.<name>.wt-persist true`).

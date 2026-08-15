@@ -161,6 +161,103 @@ func TestCreatePersistFlag(t *testing.T) {
 	}
 }
 
+func TestCreateRunsCommandInReadyWorktree(t *testing.T) {
+	dir := initRepo(t)
+	t.Setenv("WORKTREE", "old-worktree")
+	hookPath := filepath.Join(dir, ".wt", "create")
+	writeFile(t, hookPath, "#!/bin/sh\nprintf ready > hook-result\n")
+	if err := os.Chmod(hookPath, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	testGit(t, dir, "add", ".")
+	testGit(t, dir, "commit", "-q", "-m", "add create hook")
+
+	chdir(t, dir)
+	resetStdio(t)
+	code := cmdCreate([]string{
+		"feature-command", "--", "sh", "-c",
+		`test "$(cat hook-result)" = ready && printf '%s\n%s\n%s\n' "$PWD" "$WORKTREE" "$1" > command-result`,
+		"sh", `Fix issue "xyz"`,
+	})
+	if code != 0 {
+		t.Fatalf("cmdCreate exit = %d, want 0; stderr = %s", code, stderrBuf.String())
+	}
+
+	wtPath := worktreePath(dir, "feature-command")
+	data, err := os.ReadFile(filepath.Join(wtPath, "command-result"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := wtPath + "\nfeature-command\nFix issue \"xyz\"\n"
+	if got := string(data); got != want {
+		t.Errorf("command result = %q, want %q", got, want)
+	}
+}
+
+func TestCreateCommandStripsShellShimEnvironment(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("WT_SHIM", "1")
+	resetStdio(t)
+
+	code := runCreateCommand(dir, "feature", []string{"sh", "-c", `printf '%s' "${WT_SHIM-unset}" > shim-env`})
+	if code != 0 {
+		t.Fatalf("runCreateCommand exit = %d; stderr = %s", code, stderrBuf.String())
+	}
+	data, err := os.ReadFile(filepath.Join(dir, "shim-env"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := string(data); got != "unset" {
+		t.Errorf("WT_SHIM = %q, want unset", got)
+	}
+}
+
+func TestCreateDoesNotEnterWorktreeRemovedByCommand(t *testing.T) {
+	dir := initRepo(t)
+	chdir(t, dir)
+	resetStdio(t)
+
+	code := cmdCreate([]string{
+		"self-removing", "--", "sh", "-c",
+		`git -C "$1" worktree remove --force "$PWD"`, "sh", dir,
+	})
+	if code != 0 {
+		t.Fatalf("cmdCreate exit = %d, want 0; stderr = %s", code, stderrBuf.String())
+	}
+	if got := stdoutBuf.String(); got != "" {
+		t.Errorf("cmdCreate emitted stale worktree entry target %q", got)
+	}
+	if _, err := os.Stat(worktreePath(dir, "self-removing")); !os.IsNotExist(err) {
+		t.Fatalf("command should have removed its worktree, stat err = %v", err)
+	}
+}
+
+func TestCreateReturnsCommandExitStatus(t *testing.T) {
+	dir := initRepo(t)
+	chdir(t, dir)
+	resetStdio(t)
+
+	code := cmdCreate([]string{"feature-failing-command", "--", "sh", "-c", "exit 7"})
+	if code != 7 {
+		t.Fatalf("cmdCreate exit = %d, want 7; stderr = %s", code, stderrBuf.String())
+	}
+	if got := strings.TrimSpace(stdoutBuf.String()); got != worktreePath(dir, "feature-failing-command") {
+		t.Errorf("printed path = %q, want created worktree path", got)
+	}
+}
+
+func TestCreateRequiresCommandAfterSeparator(t *testing.T) {
+	resetStdio(t)
+
+	code := cmdCreate([]string{"feature", "--"})
+	if code != 2 {
+		t.Fatalf("cmdCreate exit = %d, want 2", code)
+	}
+	if !strings.Contains(stderrBuf.String(), "command is required after --") {
+		t.Errorf("expected missing command guidance, got %q", stderrBuf.String())
+	}
+}
+
 func TestSwitchMissingWorktreeDoesNotCreate(t *testing.T) {
 	dir := initRepo(t)
 	chdir(t, dir)

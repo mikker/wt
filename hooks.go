@@ -48,19 +48,6 @@ func runHook(cwd, path string, args ...string) error {
 	return cmd.Run()
 }
 
-// stripEnv returns env with any entries for the given key removed.
-func stripEnv(env []string, key string) []string {
-	prefix := key + "="
-	out := make([]string, 0, len(env))
-	for _, kv := range env {
-		if strings.HasPrefix(kv, prefix) {
-			continue
-		}
-		out = append(out, kv)
-	}
-	return out
-}
-
 // parseConfig reads .wt/config (key = value per line, "#" comments, blank
 // lines ignored) from dir. A missing file returns an empty map, not an
 // error.

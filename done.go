@@ -96,7 +96,11 @@ func cmdDone(args []string) int {
 	if !ok {
 		return code
 	}
-	return doneFlow("wt done", rm, keep)
+	removal, code := doneFlow("wt done", rm, keep)
+	if code == 0 && removal != nil {
+		emitRemovalEvent("wt done", "done", *removal)
+	}
+	return code
 }
 
 // cmdShip implements `wt ship`: fetch, fast-forward local trunk to
@@ -125,13 +129,17 @@ func cmdShip(args []string) int {
 		return 1
 	}
 
-	if code := doneFlow("wt ship", rm, keep); code != 0 {
+	removal, code := doneFlow("wt ship", rm, keep)
+	if code != 0 {
 		return code
 	}
 
 	if _, err := runGit(mainCheckout, "push", "origin", trunk); err != nil {
 		fmt.Fprintf(stderr, "wt ship: merged locally, but `git push origin %s` failed: %v\nResolve and push manually from %s.\n", trunk, err, mainCheckout)
 		return 1
+	}
+	if removal != nil {
+		emitRemovalEvent("wt ship", "ship", *removal)
 	}
 
 	return 0
@@ -140,55 +148,55 @@ func cmdShip(args []string) int {
 // doneFlow implements the offline merge-and-teardown algorithm shared by
 // `wt done` and, after its network bracket, `wt ship`. cmdName prefixes
 // error messages so they read correctly from either caller.
-func doneFlow(cmdName string, rm, keep bool) int {
+func doneFlow(cmdName string, rm, keep bool) (*removalDetails, int) {
 	ctx, code := loadRepo(cmdName)
 	if code != 0 {
-		return code
+		return nil, code
 	}
 	mainCheckout, trunk, trunkWorktree, cur := ctx.mainCheckout, ctx.trunk, ctx.trunkWorktree, ctx.cur
 
 	if cur == nil {
 		fmt.Fprintf(stderr, "%s: must be run from a non-trunk feature worktree. `wt switch <name>` into one first.\n", cmdName)
-		return 1
+		return nil, 1
 	}
 	if cur.IsMain {
 		fmt.Fprintf(stderr, "%s: must be run from a non-trunk feature worktree, not the main checkout (%s): tearing down would `git worktree remove` the main checkout and run `.wt/destroy` against it. Work happens in linked worktrees — `wt switch <name>` into one, then re-run `%s` there.\n", cmdName, cur.Path, cmdName)
-		return 1
+		return nil, 1
 	}
 	if cur.Path == trunkWorktree.Path {
 		fmt.Fprintf(stderr, "%s: must be run from a non-trunk feature worktree (currently in %s, which has trunk %s checked out). `wt switch <name>` into one first.\n", cmdName, cur.Path, trunk)
-		return 1
+		return nil, 1
 	}
 	if cur.Detached || cur.Branch == "" {
 		fmt.Fprintf(stderr, "%s: %s is on a detached HEAD; checkout a branch first (e.g. `git -C %s checkout -b <name>`), then re-run `%s`.\n", cmdName, cur.Path, cur.Path, cmdName)
-		return 1
+		return nil, 1
 	}
 	name := cur.Branch
 
 	if dirty, dirt, err := isDirty(cur.Path); err != nil {
 		fmt.Fprintf(stderr, "%s: attempted `git status --porcelain` in %s, git refused: %v\n", cmdName, cur.Path, err)
-		return 2
+		return nil, 2
 	} else if dirty {
 		fmt.Fprintf(stderr, "%s: %s has uncommitted changes, refusing to merge:\n%s\nCommit or stash the changes, then re-run `%s`.\n", cmdName, cur.Path, dirt, cmdName)
-		return 1
+		return nil, 1
 	}
 
 	if dirty, dirt, err := isDirty(trunkWorktree.Path); err != nil {
 		fmt.Fprintf(stderr, "%s: attempted `git status --porcelain` in %s, git refused: %v\n", cmdName, trunkWorktree.Path, err)
-		return 2
+		return nil, 2
 	} else if dirty {
 		fmt.Fprintf(stderr, "%s: trunk worktree %s has uncommitted changes, refusing to merge:\n%s\nCommit or stash there, then re-run `%s`.\n", cmdName, trunkWorktree.Path, dirt, cmdName)
-		return 1
+		return nil, 1
 	}
 
 	if _, err := runGit(cur.Path, "rebase", trunk); err != nil {
 		fmt.Fprintf(stderr, "%s: attempted `git rebase %s` in %s, git stopped with a conflict: %v\nResolve the conflicts, `git add` the fixed files, `git rebase --continue`, then re-run `%s`.\n", cmdName, trunk, cur.Path, err, cmdName)
-		return 1
+		return nil, 1
 	}
 
 	if _, err := runGit(trunkWorktree.Path, "merge", "--ff-only", name); err != nil {
 		fmt.Fprintf(stderr, "%s: attempted `git -C %s merge --ff-only %s`, git refused: %v\nThis shouldn't happen right after a clean rebase onto %s; inspect `git log` in both worktrees.\n", cmdName, trunkWorktree.Path, name, err, trunk)
-		return 1
+		return nil, 1
 	}
 
 	if effectivePersistent(mainCheckout, cur.Path, name, rm, keep) {
@@ -196,14 +204,15 @@ func doneFlow(cmdName string, rm, keep bool) int {
 		// feature branch's tip, so feature == trunk here; there's nothing
 		// left to rebase onto.
 		fmt.Fprintf(stdout, "%s: merged %s into %s; %s is persistent, staying in %s\n", cmdName, name, trunk, name, cur.Path)
-		return 0
+		return nil, 0
 	}
+	removal := newRemovalDetails(mainCheckout, trunk, trunkWorktree.Path, *cur)
 
 	runDestroyHook(cur.Path)
 
 	if err := removeWorktree(mainCheckout, *cur, trunk, false); err != nil {
 		fmt.Fprintf(stderr, "%s: merged %s into %s, but `git worktree remove %s` failed: %v\nRemove it manually, then `git branch -d %s`.\n", cmdName, name, trunk, cur.Path, err, name)
-		return 1
+		return nil, 1
 	}
 
 	// git branch -d judges merged-ness against the HEAD of the directory it
@@ -215,5 +224,5 @@ func doneFlow(cmdName string, rm, keep bool) int {
 	}
 
 	enterWorktree(*trunkWorktree)
-	return 0
+	return &removal, 0
 }
