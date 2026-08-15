@@ -7,31 +7,21 @@ description: Release wt by validating the repository, tagging a version, and ver
 
 Releases are tag-driven. Pushing a version tag runs `.github/workflows/release.yml`, which tests the project, publishes macOS, Linux, and Windows archives to GitHub Releases, and updates `Casks/wt.rb` in `mikker/homebrew-tap`.
 
-## Before tagging
+## Prepare
 
-1. Take the requested version without adding or removing a `v` prefix. Versions normally look like `0.1` or `0.1.1`.
-2. Confirm the checkout is on `main`, has no uncommitted changes, and has an `origin` remote pointing at `mikker/wt`.
-3. Fetch `origin` and confirm local `main` is neither ahead of nor behind `origin/main`.
-4. Confirm the version does not already exist as a local tag, remote tag, or GitHub release.
-5. Run:
-
-   ```sh
-   go test ./...
-   goreleaser check # when goreleaser is installed
-   ```
-
-Do not tag a dirty, unpushed, or failing checkout.
+1. Review `CHANGELOG.md`. Consolidate the user-visible `Unreleased` entries under the next `0.x` version and start a fresh `Unreleased` section.
+2. Commit and push the changelog and all intended release changes to `main`.
+3. Confirm the checkout is on clean, synchronized `main` and `origin` points at `mikker/wt`.
 
 ## Publish
 
-Create and push an annotated tag:
+Run:
 
 ```sh
-git tag -a "$VERSION" -m "Release $VERSION"
-git push origin "$VERSION"
+mise run release
 ```
 
-The pushed tag is the release action. Do not manually upload duplicate assets or edit the tap while the workflow is running.
+The release task calculates the next `0.x` version, validates the repository, runs static analysis, tests, a build, and GoReleaser's configuration check when available, then atomically pushes `main` and an annotated tag. Do not manually upload duplicate assets or edit the tap while the workflow is running.
 
 ## Verify
 

@@ -16,3 +16,7 @@ run = ["go vet ./...", "go test ./..."]
 [tasks.clean]
 description = "Remove build artifacts"
 run = "rm -rf wt dist"
+
+[tasks.release]
+description = "Test and publish the next 0.x release"
+run = "bash scripts/release"
