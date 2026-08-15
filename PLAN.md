@@ -120,15 +120,16 @@ human-initiated destructive action:
 
 Flip `branch.<name>.wt-persist` for the current worktree. Prints new state.
 
-### `wt skill` — print the regroup instructions
+### `wt skill` — print the wt agent skill
 
-Prints the embedded regroup skill to stdout. Agents don't get an installed
+Prints the embedded wt skill to stdout. Agents don't get an installed
 skill file; instead, agent docs (CLAUDE.md / AGENTS.md) carry a one-liner:
-"To merge worktree work back to trunk, run `wt skill` and follow it." No
+"To manage worktrees, run `wt skill` and follow it." No
 install step, no staleness — the binary is the source of truth.
 
-For those who want a file on disk anyway: `wt skill --export [path]` writes
-it (default `.claude/skills/regroup/SKILL.md`).
+For those who want a file on disk anyway: `wt skill --export <skills-dir>`
+writes `<skills-dir>/wt/SKILL.md`. The skill can then be invoked with requests
+such as `/wt ship`, `/wt merge`, or `/wt create a new workspace`.
 
 ### `wt init` — set up a project
 
@@ -194,22 +195,23 @@ Effective persistence for a worktree, first match wins:
 3. `persistent = true` in `.wt/config`
 4. default: ephemeral
 
-## The regroup skill (rewritten, thin)
+## The wt skill
 
 This is what `wt skill` prints:
 
 ```
-Run `wt done` (or `wt ship` when asked to sync with the remote).
+Use the matching `wt` command to create, switch, list, remove, persist, merge,
+or ship worktrees. Use `wt done` to merge locally and `wt ship` when asked to
+sync with the remote.
 If it stops on a rebase conflict: inspect, resolve, `git add`,
 `git rebase --continue`, then re-run the same wt command.
 If it stops on dirty state: commit or stash as appropriate, re-run.
 Never non-ff merge into trunk. Never push unless the user asked (use ship).
 ```
 
-Embedded in the binary, served by `wt skill`, exportable to disk with
-`wt skill --export`. Agent docs point at it with a one-liner instead of
-carrying a copy. The existing `~/.claude/skills/regroup/SKILL.md` gets
-retired (or replaced by the exported version) once `wt` works.
+Named `wt`, embedded in the binary, served by `wt skill`, exportable to a
+specified skills directory with `wt skill --export <skills-dir>`. Agent docs
+point at it with a one-liner instead of carrying a copy.
 
 ## Implementation
 
@@ -234,7 +236,7 @@ wt/
   shellenv.go        # wt shellenv
   hooks.go           # .wt/ discovery, config parsing, hook execution
   embedded/
-    skill.md         # regroup skill
+    skill.md         # wt skill
     prompt.md        # project-setup prompt
     shim.zsh         # shell wrapper template
     hooks/           # example create/destroy/config for wt init

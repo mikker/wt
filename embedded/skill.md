@@ -1,9 +1,21 @@
 ---
-name: regroup
-description: Merge worktree work back to trunk with wt done/wt ship, resolving rebase conflicts and dirty state as they come up.
+name: wt
+description: Manage Git worktrees with wt. Use to create, switch, list, remove, persist, merge, or ship worktrees.
 ---
 
-Run `wt done` (or `wt ship` when asked to sync with the remote).
+Use `wt` to carry out the requested worktree operation:
+
+- Create or enter a worktree: `wt switch <name>`. Derive a short,
+  branch-compatible name from the task when possible; ask for one when the
+  request has no naming context.
+- Pick an existing worktree: `wt switch`.
+- List worktrees: `wt ls`.
+- Remove a worktree without merging: `wt rm [<name>]`.
+- Toggle persistence for the current worktree: `wt persist`.
+- Merge the current worktree into local trunk: `wt done`.
+- Sync with the remote, merge, and push trunk: `wt ship`.
+
+For merge and ship requests, run the command and handle resolvable stops:
 
 - If it stops on a rebase conflict: inspect, resolve, `git add`, `git rebase
   --continue`, then re-run the same `wt` command.

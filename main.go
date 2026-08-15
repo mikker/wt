@@ -98,7 +98,7 @@ commands:
   done [--rm|--keep]            rebase, merge to trunk, tear down (offline)
   ship [--rm|--keep]            fetch, ff trunk, done, push trunk
   persist                       toggle persistence for the current worktree
-  skill [--export [path]]       print (or export) the regroup agent skill
+  skill [--export <skills-dir>] print (or export) the wt agent skill
   prompt                        print a project-setup prompt for an agent
   init                          scaffold .wt/ and doc pointers for this project
   shellenv [zsh]                print the shell wrapper for eval

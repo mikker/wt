@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Renamed and expanded the exported agent skill to `wt`, supporting requests such as `/wt ship`, `/wt merge`, and `/wt create a new workspace`; exporting now takes an explicit skills directory.
+
 ## 0.2
 
 - Added `-v` and `--version` flags for printing the installed version.

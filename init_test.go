@@ -14,25 +14,38 @@ func TestSkillPrintsFrontmatterAndBody(t *testing.T) {
 		t.Fatalf("cmdSkill exit = %d, want 0; stderr = %s", code, stderrBuf.String())
 	}
 	out := stdoutBuf.String()
-	if !strings.HasPrefix(out, "---\nname: regroup\n") {
+	if !strings.HasPrefix(out, "---\nname: wt\n") {
 		t.Errorf("expected yaml frontmatter at the top, got:\n%s", out)
 	}
-	if !strings.Contains(out, "wt done") || !strings.Contains(out, "--continue") {
-		t.Errorf("expected the skill body to mention wt done and --continue, got:\n%s", out)
+	for _, want := range []string{"wt switch", "wt done", "wt ship", "--continue"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("expected the skill body to mention %q, got:\n%s", want, out)
+		}
 	}
 }
 
-func TestSkillExportDefaultPath(t *testing.T) {
-	dir := t.TempDir()
-	chdir(t, dir)
+func TestSkillExportRequiresSkillsDir(t *testing.T) {
 	resetStdio(t)
 
 	code := cmdSkill([]string{"--export"})
-	if code != 0 {
-		t.Fatalf("cmdSkill --export exit = %d, want 0; stderr = %s", code, stderrBuf.String())
+	if code != 2 {
+		t.Fatalf("cmdSkill --export exit = %d, want 2", code)
 	}
+	if !strings.Contains(stderrBuf.String(), "requires a skills directory") {
+		t.Fatalf("expected missing directory error, got %q", stderrBuf.String())
+	}
+}
 
-	want := filepath.Join(dir, ".claude", "skills", "regroup", "SKILL.md")
+func TestSkillExportToSkillsDir(t *testing.T) {
+	dir := t.TempDir()
+	skillsDir := filepath.Join(dir, ".claude", "skills")
+	resetStdio(t)
+
+	code := cmdSkill([]string{"--export", skillsDir})
+	if code != 0 {
+		t.Fatalf("cmdSkill --export %s exit = %d, want 0; stderr = %s", skillsDir, code, stderrBuf.String())
+	}
+	want := filepath.Join(skillsDir, "wt", "SKILL.md")
 	data, err := os.ReadFile(want)
 	if err != nil {
 		t.Fatalf("expected %s to exist: %v", want, err)
@@ -40,26 +53,8 @@ func TestSkillExportDefaultPath(t *testing.T) {
 	if string(data) != skillMd {
 		t.Errorf("exported content differs from embedded skill.md")
 	}
-	if !strings.Contains(stdoutBuf.String(), defaultSkillExportPath) {
-		t.Errorf("expected confirmation to mention %s, got %q", defaultSkillExportPath, stdoutBuf.String())
-	}
-}
-
-func TestSkillExportCustomPath(t *testing.T) {
-	dir := t.TempDir()
-	custom := filepath.Join(dir, "nested", "dir", "SKILL.md")
-	resetStdio(t)
-
-	code := cmdSkill([]string{"--export", custom})
-	if code != 0 {
-		t.Fatalf("cmdSkill --export %s exit = %d, want 0; stderr = %s", custom, code, stderrBuf.String())
-	}
-	data, err := os.ReadFile(custom)
-	if err != nil {
-		t.Fatalf("expected %s to exist: %v", custom, err)
-	}
-	if string(data) != skillMd {
-		t.Errorf("exported content differs from embedded skill.md")
+	if !strings.Contains(stdoutBuf.String(), want) {
+		t.Errorf("expected confirmation to mention %s, got %q", want, stdoutBuf.String())
 	}
 }
 

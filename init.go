@@ -24,17 +24,15 @@ var exampleDestroyHook string
 //go:embed embedded/hooks/config
 var exampleConfigHook string
 
-const defaultSkillExportPath = ".claude/skills/regroup/SKILL.md"
-
 // skillPointerLine is what `wt init` offers to append to CLAUDE.md/AGENTS.md.
-const skillPointerLine = "- To merge worktree work back to trunk, run `wt skill` and follow it."
+const skillPointerLine = "- To manage worktrees, run `wt skill` and follow it."
 
-// cmdSkill implements `wt skill [--export [path]]`: prints the embedded
-// regroup skill, or writes it to disk.
+// cmdSkill implements `wt skill [--export <skills-dir>]`: prints the embedded
+// wt skill, or writes it to disk.
 func cmdSkill(args []string) int {
 	for _, a := range args {
 		if a == "-h" || a == "--help" {
-			fmt.Fprintln(stdout, "usage: wt skill [--export [path]]")
+			fmt.Fprintln(stdout, "usage: wt skill [--export <skills-dir>]")
 			return 0
 		}
 	}
@@ -45,18 +43,19 @@ func cmdSkill(args []string) int {
 	}
 
 	if args[0] != "--export" {
-		fmt.Fprintf(stderr, "wt skill: unknown argument %q. usage: wt skill [--export [path]]\n", args[0])
+		fmt.Fprintf(stderr, "wt skill: unknown argument %q. usage: wt skill [--export <skills-dir>]\n", args[0])
+		return 2
+	}
+	if len(args) == 1 {
+		fmt.Fprintln(stderr, "wt skill: --export requires a skills directory. usage: wt skill --export <skills-dir>")
 		return 2
 	}
 	if len(args) > 2 {
-		fmt.Fprintf(stderr, "wt skill: too many arguments: %s. usage: wt skill [--export [path]]\n", strings.Join(args[2:], " "))
+		fmt.Fprintf(stderr, "wt skill: too many arguments: %s. usage: wt skill --export <skills-dir>\n", strings.Join(args[2:], " "))
 		return 2
 	}
 
-	path := defaultSkillExportPath
-	if len(args) == 2 {
-		path = args[1]
-	}
+	path := filepath.Join(args[1], "wt", "SKILL.md")
 
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		fmt.Fprintf(stderr, "wt skill: attempted to create %s, failed: %v\n", filepath.Dir(path), err)
