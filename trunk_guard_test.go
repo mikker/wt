@@ -68,7 +68,7 @@ func TestRmUnresolvableTrunkStops(t *testing.T) {
 	}
 }
 
-func TestOutsideRepoFriendlyError(t *testing.T) {
+func TestSwitchOutsideRepoFriendlyError(t *testing.T) {
 	dir := t.TempDir()
 	if resolved, err := filepath.EvalSymlinks(dir); err == nil {
 		dir = resolved
@@ -76,7 +76,7 @@ func TestOutsideRepoFriendlyError(t *testing.T) {
 	chdir(t, dir)
 	resetStdio(t)
 
-	if code := run(nil); code != 2 {
+	if code := run([]string{"switch"}); code != 2 {
 		t.Fatalf("expected exit 2, got %d\nstderr: %s", code, stderrBuf.String())
 	}
 	got := stderrBuf.String()

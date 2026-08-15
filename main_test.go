@@ -1,6 +1,26 @@
 package main
 
-import "testing"
+import (
+	"bytes"
+	"testing"
+)
+
+func TestNoArgsPrintsUsage(t *testing.T) {
+	resetStdio(t)
+
+	if code := run(nil); code != 0 {
+		t.Fatalf("run(nil) exit = %d, want 0", code)
+	}
+
+	var usage bytes.Buffer
+	printUsage(&usage)
+	if got, want := stdoutBuf.String(), usage.String(); got != want {
+		t.Fatalf("run(nil) output = %q, want %q", got, want)
+	}
+	if got := stderrBuf.String(); got != "" {
+		t.Fatalf("run(nil) stderr = %q, want empty", got)
+	}
+}
 
 func TestVersionFlags(t *testing.T) {
 	originalVersion := version

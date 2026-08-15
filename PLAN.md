@@ -57,10 +57,12 @@ Create-or-switch semantics, named after `git switch`:
 Flags: `--persist` marks the worktree persistent at creation
 (`git config branch.<name>.wt-persist true`).
 
-### `wt` / `wt switch` (no name) — pick
+### `wt switch` (no name) — pick
 
 `git worktree list` piped through `fzf`, cd to the selection. Requires fzf on
 PATH; degrade to a numbered list if absent.
+
+Bare `wt` prints the general usage notes.
 
 ### `wt ls`
 

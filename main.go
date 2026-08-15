@@ -45,8 +45,8 @@ func main() {
 
 func run(args []string) int {
 	if len(args) == 0 {
-		// Bare `wt`: same as `wt switch` with no name (fzf pick).
-		return cmdSwitch(nil)
+		printUsage(stdout)
+		return 0
 	}
 
 	name := args[0]
@@ -93,7 +93,6 @@ usage: wt <command> [args]
 
 commands:
   switch [<name>] [--persist]   create or enter a worktree by name (alias: s)
-  (bare wt)                     alias for "wt switch" with no name (fzf pick)
   rm [<name>] [--force]         remove a worktree
   ls                            list worktrees
   done [--rm|--keep]            rebase, merge to trunk, tear down (offline)
