@@ -1,0 +1,15 @@
+title: wt
+description: Ephemeral Git worktree manager
+url: https://wt.fut.sh
+baseurl: ""
+repository: mikker/wt
+version: "0.4"
+markdown: kramdown
+permalink: pretty
+relative_links:
+  enabled: true
+  collections: true
+plugins:
+  - jekyll-relative-links
+exclude:
+  - README.md
