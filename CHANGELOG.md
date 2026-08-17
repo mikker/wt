@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4
+
 - Added `wt create <name> -- <command> [args...]` to run a command in a new worktree as soon as its create hook completes.
 - Added opt-in `WT_EVENT_HANDLER` JSON notifications after successful worktree removal by `wt done`, `wt ship`, or `wt rm`.
 
