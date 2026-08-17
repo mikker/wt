@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5
+
 - Worktrees now live inside `.wt/worktrees` by default; set `worktrees = <path>` in `.wt/config` to choose another location.
 
 ## 0.4
