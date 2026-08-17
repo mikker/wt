@@ -7,6 +7,8 @@ permalink: /commands/
 
 # Commands
 
+<div class="wide-table" markdown="1">
+
 | Command | What it does | Options |
 |---|---|---|
 | `wt create <name>` | Create and enter a worktree. Alias: `c`. | `--persist`; `-- <command> [args...]` runs a command after setup. |
@@ -20,6 +22,8 @@ permalink: /commands/
 | `wt prompt` | Print a project-setup prompt for an agent. | — |
 | `wt skill` | Print the bundled agent skill. | `--export <skills-dir>` writes `wt/SKILL.md`. |
 | `wt shellenv [zsh]` | Print shell integration. | zsh is currently supported. |
+
+</div>
 
 All commands accept `-h` or `--help`. `wt -v` and `wt --version` print the
 installed version.
