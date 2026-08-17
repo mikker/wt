@@ -41,6 +41,11 @@ Worktrees live inside the main checkout at `.wt/worktrees/<name>` by default.
 They are ephemeral: `wt done` merges locally and removes the worktree; `wt
 ship` also syncs and pushes.
 
+> **Using Fut?** [`wt` works well with Fut](https://fut.sh), the persistent,
+> agent-aware terminal multiplexer. `wt` creates and manages the Git
+> worktrees; Fut recognizes linked worktrees as peer workspaces in the same
+> project session, keeping each task's terminals and agents together.
+
 ## Start here
 
 - [Commands and options](commands.md)
