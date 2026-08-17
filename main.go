@@ -111,10 +111,10 @@ commands:
   init                          scaffold .wt/ and doc pointers for this project
   shellenv [zsh]                print the shell wrapper for eval
 
-Worktrees live at ../<project>-worktrees/<name>, one directory up from the
-main checkout; a worktree's name is always its branch name. Without the
-shell shim, commands that would cd instead print the destination path so you
-can cd yourself.
+Worktrees live at .wt/worktrees/<name> inside the main checkout by default;
+set "worktrees = <path>" in .wt/config to use another location. A worktree's
+name is always its branch name. Without the shell shim, commands that would cd
+instead print the destination path so you can cd yourself.
 
 Run "wt <command> --help" for command-specific help where available.
 Run "wt help hooks" for the .wt/create, .wt/destroy, .wt/config contract.

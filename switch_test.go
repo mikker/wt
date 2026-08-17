@@ -28,6 +28,44 @@ func TestCreateFresh(t *testing.T) {
 	if got := strings.TrimSpace(stdoutBuf.String()); got != wtPath {
 		t.Errorf("printed path = %q, want %q", got, wtPath)
 	}
+	if got := testGit(t, dir, "status", "--porcelain"); got != "" {
+		t.Errorf("nested worktree dirtied main checkout:\n%s", got)
+	}
+	exclude, err := os.ReadFile(filepath.Join(dir, ".git", "info", "exclude"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := string(exclude), "/.wt/worktrees/"; !strings.Contains(got, want) {
+		t.Errorf("git info/exclude = %q, want it to contain %q", got, want)
+	}
+}
+
+func TestCreateUsesConfiguredWorktreesDirectory(t *testing.T) {
+	dir := initRepo(t)
+	writeFile(t, filepath.Join(dir, ".wt", "config"), "worktrees = .worktrees\n")
+	testGit(t, dir, "add", ".wt/config")
+	testGit(t, dir, "commit", "-q", "-m", "configure worktrees")
+	chdir(t, dir)
+	resetStdio(t)
+
+	if code := cmdCreate([]string{"feature"}); code != 0 {
+		t.Fatalf("cmdCreate exit = %d, want 0; stderr = %s", code, stderrBuf.String())
+	}
+
+	wtPath := filepath.Join(dir, ".worktrees", "feature")
+	if _, err := os.Stat(wtPath); err != nil {
+		t.Fatalf("expected worktree at %s: %v", wtPath, err)
+	}
+	if got := testGit(t, dir, "status", "--porcelain"); got != "" {
+		t.Errorf("configured nested worktree dirtied main checkout:\n%s", got)
+	}
+	exclude, err := os.ReadFile(filepath.Join(dir, ".git", "info", "exclude"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := string(exclude), "/.worktrees/"; !strings.Contains(got, want) {
+		t.Errorf("git info/exclude = %q, want it to contain %q", got, want)
+	}
 }
 
 func TestCreateAlias(t *testing.T) {

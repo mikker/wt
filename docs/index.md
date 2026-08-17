@@ -37,9 +37,9 @@ Then create a worktree from any Git repository:
 wt create my-change
 ```
 
-Worktrees live beside the main checkout at
-`../<project>-worktrees/<name>`. They are ephemeral by default: `wt done`
-merges locally and removes the worktree; `wt ship` also syncs and pushes.
+Worktrees live inside the main checkout at `.wt/worktrees/<name>` by default.
+They are ephemeral: `wt done` merges locally and removes the worktree; `wt
+ship` also syncs and pushes.
 
 ## Start here
 

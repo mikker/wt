@@ -102,8 +102,28 @@ func TestParseWorktrees(t *testing.T) {
 
 func TestWorktreePath(t *testing.T) {
 	got := worktreePath("/dev/tuna", "login-fix")
-	want := filepath.FromSlash("/dev/tuna-worktrees/login-fix")
+	want := filepath.FromSlash("/dev/tuna/.wt/worktrees/login-fix")
 	if got != want {
 		t.Errorf("worktreePath = %q, want %q", got, want)
+	}
+}
+
+func TestWorktreesDirFromConfig(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, ".wt", "config"), "worktrees = ../shared-worktrees\n")
+
+	want := filepath.Join(filepath.Dir(dir), "shared-worktrees")
+	if got := worktreesDir(dir); got != want {
+		t.Errorf("worktreesDir = %q, want %q", got, want)
+	}
+}
+
+func TestWorktreesDirAbsoluteConfig(t *testing.T) {
+	dir := t.TempDir()
+	want := filepath.Join(t.TempDir(), "worktrees")
+	writeFile(t, filepath.Join(dir, ".wt", "config"), "worktrees = "+want+"\n")
+
+	if got := worktreesDir(dir); got != want {
+		t.Errorf("worktreesDir = %q, want %q", got, want)
 	}
 }

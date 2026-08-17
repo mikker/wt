@@ -211,17 +211,75 @@ func removeWorktree(mainCheckout string, w Worktree, trunk string, force bool) e
 	return err
 }
 
-// worktreesDir returns the sibling directory that holds this project's
-// worktrees: ../<project>-worktrees relative to the main checkout.
+// worktreesDir returns the directory that holds this project's worktrees.
+// The `worktrees` value in .wt/config may be absolute or relative to the main
+// checkout; the default keeps worktrees inside the project at .wt/worktrees.
 func worktreesDir(mainCheckout string) string {
-	parent := filepath.Dir(mainCheckout)
-	project := filepath.Base(mainCheckout)
-	return filepath.Join(parent, project+"-worktrees")
+	dir := parseConfig(mainCheckout)["worktrees"]
+	if dir == "" {
+		dir = filepath.Join(".wt", "worktrees")
+	}
+	if !filepath.IsAbs(dir) {
+		dir = filepath.Join(mainCheckout, dir)
+	}
+	return filepath.Clean(dir)
 }
 
 // worktreePath returns the conventional path for worktree name.
 func worktreePath(mainCheckout, name string) string {
 	return filepath.Join(worktreesDir(mainCheckout), name)
+}
+
+// ensureWorktreesExcluded keeps a worktrees directory nested inside the main
+// checkout out of git status without changing the project's tracked
+// .gitignore. Directories outside the checkout need no exclusion.
+func ensureWorktreesExcluded(mainCheckout, dir string) error {
+	rel, err := filepath.Rel(mainCheckout, dir)
+	if err != nil {
+		return err
+	}
+	if rel == "." {
+		return fmt.Errorf("worktrees directory cannot be the main checkout")
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
+		return nil
+	}
+
+	pattern := "/" + filepath.ToSlash(rel) + "/"
+	excludePath, err := runGit(mainCheckout, "rev-parse", "--git-path", "info/exclude")
+	if err != nil {
+		return err
+	}
+	if !filepath.IsAbs(excludePath) {
+		excludePath = filepath.Join(mainCheckout, excludePath)
+	}
+
+	contents, err := os.ReadFile(excludePath)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	for _, line := range strings.Split(string(contents), "\n") {
+		if strings.TrimSpace(line) == pattern {
+			return nil
+		}
+	}
+
+	if err := os.MkdirAll(filepath.Dir(excludePath), 0o755); err != nil {
+		return err
+	}
+	f, err := os.OpenFile(excludePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if len(contents) > 0 && !bytes.HasSuffix(contents, []byte("\n")) {
+		if _, err := f.WriteString("\n"); err != nil {
+			return err
+		}
+	}
+	_, err = f.WriteString(pattern + "\n")
+	return err
 }
 
 // isDirty reports whether dir has uncommitted changes, including untracked

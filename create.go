@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -54,7 +55,12 @@ func cmdCreate(args []string) int {
 		return 2
 	}
 
-	wtPath := worktreePath(mainCheckout, name)
+	worktreesRoot := worktreesDir(mainCheckout)
+	if err := ensureWorktreesExcluded(mainCheckout, worktreesRoot); err != nil {
+		fmt.Fprintf(stderr, "wt create: could not exclude worktrees directory %s from the main checkout: %v\n", worktreesRoot, err)
+		return 2
+	}
+	wtPath := filepath.Join(worktreesRoot, name)
 	if branchExists(mainCheckout, name) {
 		if _, err := runGit(mainCheckout, "worktree", "add", wtPath, name); err != nil {
 			fmt.Fprintf(stderr, "wt create: attempted `git worktree add %s %s` (existing branch), git refused: %v. Check `git worktree list` and `git branch` for conflicts, then retry.\n", wtPath, name, err)

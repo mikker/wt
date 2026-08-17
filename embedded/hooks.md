@@ -16,8 +16,14 @@ drop `env`.
 
 .wt/config
     When: read by the binary.
-    Contract: `key = value` lines, `#` comments. Currently just
-    `persistent = true`.
+    Contract: `key = value` lines, `#` comments. `worktrees = <path>` sets
+    the worktree directory; relative paths resolve from the main checkout.
+    The default is `.wt/worktrees`. `persistent = true` keeps worktrees after
+    successful merges.
+
+When the worktrees directory is inside the main checkout, wt adds it to
+`.git/info/exclude` so creating a worktree does not dirty the project or
+change its tracked `.gitignore`.
 
 `.wt/create` and `.wt/destroy` only run if they exist AND are executable
 (`chmod +x`); a non-executable file is silently skipped.

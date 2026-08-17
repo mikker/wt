@@ -24,10 +24,11 @@ opt-in mode.
 - **Never lose work silently.** Dirty checks before removal, `git branch -d`
   never `-D`, ff-only merges into trunk, no pushes except in `wt ship`.
 
-## Layout conventions (unchanged from gwt)
+## Layout conventions
 
-- Worktrees live at `../<project>-worktrees/<name>` relative to the main
-  checkout. E.g. `~/dev/tuna` → `~/dev/tuna-worktrees/login-fix`.
+- Worktrees live at `.wt/worktrees/<name>` inside the main checkout by
+  default. `.wt/config` can set `worktrees` to an absolute path or one
+  relative to the main checkout.
 - Branch name == worktree name.
 - Trunk is resolved as: `refs/remotes/origin/HEAD` if set, else local `main`,
   else local `master`. Error out otherwise.
@@ -44,9 +45,9 @@ names never collide with command names (`done`, `ls`, …).
 
 1. Refuse if a worktree named `<name>` already exists, with guidance to use
    `wt switch <name>`.
-2. Run `git worktree add ../<project>-worktrees/<name> -b <name> <trunk>`;
-   if the branch already exists, add the worktree on the existing branch
-   instead (current gwt behavior).
+2. Exclude a nested worktree directory through `.git/info/exclude`, then run
+   `git worktree add <worktrees>/<name> -b <name> <trunk>`; if the branch
+   already exists, add the worktree on the existing branch instead.
 3. Run `.wt/create <base_dir>` if present and executable, from inside the new
    worktree, with the main checkout's absolute path as `$1`. A failing create
    hook reports the failure but leaves the worktree in place (you can inspect

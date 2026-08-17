@@ -22,6 +22,19 @@ Hooks only run when executable:
 chmod +x .wt/create .wt/destroy
 ```
 
+## Worktree location
+
+Worktrees live at `.wt/worktrees` by default. `wt` adds that directory to
+`.git/info/exclude`, keeping the main checkout clean without changing the
+project's `.gitignore`.
+
+Set an absolute path or one relative to the main checkout to use another
+location:
+
+```ini
+worktrees = ../shared-worktrees
+```
+
 ## Persistence
 
 Worktrees are removed after a successful `done` or `ship` unless persistence

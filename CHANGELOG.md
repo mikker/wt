@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Worktrees now live inside `.wt/worktrees` by default; set `worktrees = <path>` in `.wt/config` to choose another location.
+
 ## 0.4
 
 - Added `wt create <name> -- <command> [args...]` to run a command in a new worktree as soon as its create hook completes.

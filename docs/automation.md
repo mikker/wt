@@ -44,7 +44,7 @@ one JSON object on stdin:
   "worktree": {
     "name": "fix-checkout",
     "branch": "fix-checkout",
-    "path": "/code/project-worktrees/fix-checkout"
+    "path": "/code/project/.wt/worktrees/fix-checkout"
   }
 }
 ```
