@@ -109,7 +109,7 @@ commands:
   skill [--export <skills-dir>] print (or export) the wt agent skill
   prompt                        print a project-setup prompt for an agent
   init                          scaffold .wt/ and doc pointers for this project
-  shellenv [zsh]                print the shell wrapper for eval
+  shellenv [zsh|bash]           print the shell wrapper for eval
 
 Worktrees live at .wt/worktrees/<name> inside the main checkout by default;
 set "worktrees = <path>" in .wt/config to use another location. A worktree's

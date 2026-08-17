@@ -8,12 +8,12 @@ import (
 
 // The shell shim protocol.
 //
-// A binary can't change its parent shell's cwd, so `wt shellenv zsh` (a
-// later milestone) installs a zsh function `wt()` that runs this binary
-// with WT_SHIM=1 and fd 3 redirected to a pipe it reads back.
+// A binary can't change its parent shell's cwd, so `wt shellenv` installs a
+// shell function `wt()` that runs this binary with WT_SHIM=1 and fd 3
+// redirected to a file it reads back.
 //
-// When WT_SHIM=1 is set, wt writes zsh directives to fd 3, one per line,
-// for the wrapper to `eval`. Directives in use:
+// When WT_SHIM=1 is set, wt writes POSIX-compatible directives to fd 3, one
+// per line, for the wrapper to evaluate. Directives in use:
 //
 //	builtin cd -- '<path>'     cd the parent shell into <path>
 //	export WORKTREE='<name>'   mark the parent shell as inside worktree <name>
@@ -41,8 +41,8 @@ func shimOut() *os.File {
 	return shimFile
 }
 
-// quoteZsh single-quotes s for safe interpolation into a zsh directive.
-func quoteZsh(s string) string {
+// quoteShell single-quotes s for safe interpolation into a shell directive.
+func quoteShell(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }
 
@@ -60,7 +60,7 @@ func emitDirective(line string) bool {
 // write fails, falls back to printing path to stdout so the caller still
 // learns the destination instead of silently losing it.
 func emitCd(path string) {
-	if shimActive() && emitDirective("builtin cd -- "+quoteZsh(path)) {
+	if shimActive() && emitDirective("builtin cd -- "+quoteShell(path)) {
 		return
 	}
 	fmt.Fprintln(stdout, path)
@@ -70,7 +70,7 @@ func emitCd(path string) {
 // without the shim.
 func emitExportWorktree(name string) {
 	if shimActive() {
-		emitDirective("export WORKTREE=" + quoteZsh(name))
+		emitDirective("export WORKTREE=" + quoteShell(name))
 	}
 }
 

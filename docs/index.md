@@ -31,6 +31,11 @@ echo 'eval "$(wt shellenv zsh)"' >> ~/.zshrc
 exec zsh
 ```
 
+For Bash, add `eval "$(wt shellenv bash)"` to `~/.bashrc` instead.
+
+The shell integration also completes commands and current worktree names for
+`wt switch`, `wt s`, and `wt rm`.
+
 Then create a worktree from any Git repository:
 
 ```sh

@@ -21,7 +21,7 @@ permalink: /commands/
 | `wt init` | Scaffold optional `.wt/` project files and agent pointers. | — |
 | `wt prompt` | Print a project-setup prompt for an agent. | — |
 | `wt skill` | Print the bundled agent skill. | `--export <skills-dir>` writes `wt/SKILL.md`. |
-| `wt shellenv [zsh]` | Print shell integration. | zsh is currently supported. |
+| `wt shellenv [zsh\|bash]` | Print shell integration. | Defaults to zsh. |
 
 </div>
 

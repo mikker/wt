@@ -8,18 +8,22 @@ import (
 //go:embed embedded/shim.zsh
 var shimZsh string
 
-// cmdShellenv implements `wt shellenv [zsh]`: prints the shell wrapper
-// function for `eval "$(wt shellenv zsh)"`. Defaults to zsh when no shell is
-// given.
+//go:embed embedded/shim.bash
+var shimBash string
+
+const shellenvUsage = "usage: wt shellenv [zsh|bash]"
+
+// cmdShellenv prints the requested shell wrapper. It defaults to zsh for
+// compatibility with the original shell integration.
 func cmdShellenv(args []string) int {
 	for _, a := range args {
 		if a == "-h" || a == "--help" {
-			fmt.Fprintln(stdout, "usage: wt shellenv [zsh]")
+			fmt.Fprintln(stdout, shellenvUsage)
 			return 0
 		}
 	}
 	if len(args) > 1 {
-		fmt.Fprintln(stderr, "wt shellenv: too many arguments. usage: wt shellenv [zsh]")
+		fmt.Fprintf(stderr, "wt shellenv: too many arguments. %s\n", shellenvUsage)
 		return 2
 	}
 
@@ -32,8 +36,11 @@ func cmdShellenv(args []string) int {
 	case "zsh":
 		fmt.Fprint(stdout, shimZsh)
 		return 0
+	case "bash":
+		fmt.Fprint(stdout, shimBash)
+		return 0
 	default:
-		fmt.Fprintf(stderr, "wt shellenv: unsupported shell %q; only zsh is supported for now.\n", shell)
+		fmt.Fprintf(stderr, "wt shellenv: unsupported shell %q; supported shells are zsh and bash.\n", shell)
 		return 2
 	}
 }

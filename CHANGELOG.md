@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.6
+
+- Added dynamic zsh and Bash completion for worktree names to the `wt shellenv` bootstrap.
+
 ## 0.5
 
 - Worktrees now live inside `.wt/worktrees` by default; set `worktrees = <path>` in `.wt/config` to choose another location.
