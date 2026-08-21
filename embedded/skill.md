@@ -16,6 +16,17 @@ Use `wt` to carry out the requested worktree operation:
 - Merge the current worktree into local trunk: `wt done`.
 - Sync with the remote, merge, and push trunk: `wt ship`.
 
+By default, worktrees live in the project-local `.wt/worktrees/<name>`
+directory. `wt` excludes it through `.git/info/exclude`, so do not add it to
+the project's `.gitignore`. A project can override the location with
+`worktrees = <path>` in `.wt/config`; relative paths resolve from the main
+checkout.
+
+Projects can also commit executable hooks in `.wt/`: `.wt/create` runs in a
+new worktree after it is added, with the main checkout's absolute path as
+`$1`; `.wt/destroy` runs in a worktree before it is removed. Consult
+`wt help hooks` before creating or changing either hook.
+
 When integrating an external tool with successful worktree teardown, consult
 `wt help events` for the opt-in `WT_EVENT_HANDLER` JSON event contract.
 

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- The bundled agent skill now explains the project-local `.wt/worktrees` directory, location overrides, and lifecycle hooks.
+
 ## 0.6
 
 - Added dynamic zsh and Bash completion for worktree names to the `wt shellenv` bootstrap.

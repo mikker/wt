@@ -17,7 +17,7 @@ func TestSkillPrintsFrontmatterAndBody(t *testing.T) {
 	if !strings.HasPrefix(out, "---\nname: wt\n") {
 		t.Errorf("expected yaml frontmatter at the top, got:\n%s", out)
 	}
-	for _, want := range []string{"wt create", "wt switch", "wt done", "wt ship", "--continue"} {
+	for _, want := range []string{"wt create", "wt switch", "wt done", "wt ship", ".wt/worktrees", ".wt/create", ".wt/destroy", "--continue"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("expected the skill body to mention %q, got:\n%s", want, out)
 		}
