@@ -30,21 +30,30 @@ func cmdLs(args []string) int {
 		return 2
 	}
 
-	tw := tabwriter.NewWriter(stdout, 2, 4, 2, ' ', 0)
-	fmt.Fprintln(tw, "NAME\tBRANCH\tDIRTY\tAHEAD\tBEHIND\tPERSISTENT")
+	tw := tabwriter.NewWriter(stdout, 2, 4, 2, ' ', tabwriter.StripEscape)
+	fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\n",
+		colorCell(actionColor, "NAME"),
+		colorCell(actionColor, "BRANCH"),
+		colorCell(actionColor, "DIRTY"),
+		colorCell(actionColor, "AHEAD"),
+		colorCell(actionColor, "BEHIND"),
+		colorCell(actionColor, "PERSISTENT"),
+	)
 	for _, w := range worktrees {
 		name := w.Branch
 		if w.IsMain {
-			name = w.Branch + " (main)"
+			name = colorCell(colorBold+colorGreen, w.Branch+" (main)")
+		} else {
+			name = colorCell(colorCyan, name)
 		}
 		branch := w.Branch
 		if branch == "" {
-			branch = "(detached)"
+			branch = colorCell(colorRed, "(detached)")
 		}
 
 		dirty := ""
 		if d, _, err := isDirty(w.Path); err == nil && d {
-			dirty = "dirty"
+			dirty = colorCell(colorYellow, "dirty")
 		}
 
 		ahead, behind := "-", "-"
@@ -52,12 +61,18 @@ func cmdLs(args []string) int {
 			a, b, err := aheadBehind(mainCheckout, trunk, w.Branch)
 			if err == nil {
 				ahead, behind = fmt.Sprintf("%d", a), fmt.Sprintf("%d", b)
+				if a > 0 {
+					ahead = colorCell(colorGreen, ahead)
+				}
+				if b > 0 {
+					behind = colorCell(colorRed, behind)
+				}
 			}
 		}
 
 		persistent := ""
 		if isPersistent(mainCheckout, w) {
-			persistent = "persistent"
+			persistent = colorCell(colorMagenta, "persistent")
 		}
 
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\n", name, branch, dirty, ahead, behind, persistent)

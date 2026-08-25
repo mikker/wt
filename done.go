@@ -118,13 +118,13 @@ func cmdShip(args []string) int {
 	}
 	mainCheckout, trunk, trunkWorktree := ctx.mainCheckout, ctx.trunk, ctx.trunkWorktree
 
-	if _, err := runGit(mainCheckout, "fetch", "origin", "--prune"); err != nil {
+	if _, err := runGitAction(mainCheckout, "Fetching origin", "fetch", "origin", "--prune"); err != nil {
 		fmt.Fprintf(stderr, "wt ship: attempted `git fetch origin --prune`, git refused: %v\nCheck your network connection and that `origin` is configured (`git remote -v`).\n", err)
 		return 2
 	}
 
 	remoteRef := "origin/" + trunk
-	if _, err := runGit(trunkWorktree.Path, "merge", "--ff-only", remoteRef); err != nil {
+	if _, err := runGitAction(trunkWorktree.Path, fmt.Sprintf("Fast-forwarding %s to %s", trunk, remoteRef), "merge", "--ff-only", remoteRef); err != nil {
 		fmt.Fprintf(stderr, "wt ship: attempted `git -C %s merge --ff-only %s`, git refused: %v\nEither local %s has diverged from %s — reconcile by hand in %s (e.g. `git rebase %s`) — or %s doesn't exist because %s has never been pushed — run `git push -u origin %s` from %s first. Then re-run `wt ship`.\n", trunkWorktree.Path, remoteRef, err, trunk, remoteRef, trunkWorktree.Path, remoteRef, remoteRef, trunk, trunk, mainCheckout)
 		return 1
 	}
@@ -134,7 +134,7 @@ func cmdShip(args []string) int {
 		return code
 	}
 
-	if _, err := runGit(mainCheckout, "push", "origin", trunk); err != nil {
+	if _, err := runGitAction(mainCheckout, fmt.Sprintf("Pushing %s to origin", trunk), "push", "origin", trunk); err != nil {
 		fmt.Fprintf(stderr, "wt ship: merged locally, but `git push origin %s` failed: %v\nResolve and push manually from %s.\n", trunk, err, mainCheckout)
 		return 1
 	}
@@ -189,12 +189,12 @@ func doneFlow(cmdName string, rm, keep bool) (*removalDetails, int) {
 		return nil, 1
 	}
 
-	if _, err := runGit(cur.Path, "rebase", trunk); err != nil {
+	if _, err := runGitAction(cur.Path, fmt.Sprintf("Rebasing %s onto %s", name, trunk), "rebase", trunk); err != nil {
 		fmt.Fprintf(stderr, "%s: attempted `git rebase %s` in %s, git stopped with a conflict: %v\nResolve the conflicts, `git add` the fixed files, `git rebase --continue`, then re-run `%s`.\n", cmdName, trunk, cur.Path, err, cmdName)
 		return nil, 1
 	}
 
-	if _, err := runGit(trunkWorktree.Path, "merge", "--ff-only", name); err != nil {
+	if _, err := runGitAction(trunkWorktree.Path, fmt.Sprintf("Fast-forwarding %s to %s", trunk, name), "merge", "--ff-only", name); err != nil {
 		fmt.Fprintf(stderr, "%s: attempted `git -C %s merge --ff-only %s`, git refused: %v\nThis shouldn't happen right after a clean rebase onto %s; inspect `git log` in both worktrees.\n", cmdName, trunkWorktree.Path, name, err, trunk)
 		return nil, 1
 	}

@@ -34,11 +34,12 @@ func runHook(cwd, path string, args ...string) error {
 	if info.Mode()&0o111 == 0 {
 		return nil // not executable: skip per contract
 	}
+	actionHeadline("Running %s", path)
 	cmd := exec.Command(path, args...)
 	cmd.Dir = cwd
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
+	cmd.Stdin = stdin
 	// Hooks inherit the process environment, including WT_SHIM=1 if wt is
 	// running under the shell shim — but not fd 3, which the shim doesn't
 	// pass down to child processes. A hook that shells out to `wt` while

@@ -62,7 +62,7 @@ func cmdCreate(args []string) int {
 	}
 	wtPath := filepath.Join(worktreesRoot, name)
 	if branchExists(mainCheckout, name) {
-		if _, err := runGit(mainCheckout, "worktree", "add", wtPath, name); err != nil {
+		if _, err := runGitAction(mainCheckout, fmt.Sprintf("Creating worktree %s from existing branch %s", wtPath, name), "worktree", "add", wtPath, name); err != nil {
 			fmt.Fprintf(stderr, "wt create: attempted `git worktree add %s %s` (existing branch), git refused: %v. Check `git worktree list` and `git branch` for conflicts, then retry.\n", wtPath, name, err)
 			return 2
 		}
@@ -73,7 +73,7 @@ func cmdCreate(args []string) int {
 			fmt.Fprintf(stderr, "wt create: trunk %q comes from origin/HEAD but no local branch exists; create it with `git branch %s origin/%s` and retry.\n", trunk, trunk, trunk)
 			return 2
 		}
-		if _, err := runGit(mainCheckout, "worktree", "add", wtPath, "-b", name, trunk); err != nil {
+		if _, err := runGitAction(mainCheckout, fmt.Sprintf("Creating worktree %s on new branch %s", wtPath, name), "worktree", "add", wtPath, "-b", name, trunk); err != nil {
 			fmt.Fprintf(stderr, "wt create: attempted `git worktree add %s -b %s %s`, git refused: %v. Check `git worktree list` and `git branch` for conflicts, then retry.\n", wtPath, name, trunk, err)
 			return 2
 		}
@@ -115,6 +115,7 @@ func splitCreateCommand(args []string) (createArgs, command []string) {
 }
 
 func runCreateCommand(worktreePath, name string, args []string) int {
+	actionHeadline("Running command in %s: %s", worktreePath, strings.Join(args, " "))
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Dir = worktreePath
 	cmd.Env = setEnv(stripEnv(cmd.Environ(), "WT_SHIM"), "WORKTREE", name)

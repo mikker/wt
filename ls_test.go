@@ -1,9 +1,16 @@
 package main
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 )
+
+var ansiPattern = regexp.MustCompile(`\x1b\[[0-9;]*m`)
+
+func stripANSI(value string) string {
+	return ansiPattern.ReplaceAllString(value, "")
+}
 
 func TestLsBasic(t *testing.T) {
 	dir := initRepo(t)
@@ -26,6 +33,9 @@ func TestLsBasic(t *testing.T) {
 	}
 
 	out := stdoutBuf.String()
+	if !strings.Contains(out, "\x1b[") {
+		t.Errorf("expected ANSI-colored output, got:\n%s", out)
+	}
 	if !strings.Contains(out, "feature") {
 		t.Errorf("expected output to mention the feature branch, got:\n%s", out)
 	}
@@ -36,7 +46,7 @@ func TestLsBasic(t *testing.T) {
 		t.Errorf("expected the main checkout to be listed, got:\n%s", out)
 	}
 	// feature is 1 commit ahead of main and 0 behind.
-	lines := strings.Split(strings.TrimSpace(out), "\n")
+	lines := strings.Split(strings.TrimSpace(stripANSI(out)), "\n")
 	found := false
 	for _, l := range lines {
 		if strings.HasPrefix(l, "feature") {

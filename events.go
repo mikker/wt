@@ -79,6 +79,7 @@ func emitRemovalEvent(cmdName, operation string, removal removalDetails) {
 	}
 
 	cmd := exec.Command(handler)
+	actionHeadline("Running lifecycle event handler %s", handler)
 	cmd.Dir = removal.Repository.TrunkWorktree
 	cmd.Env = stripEnv(cmd.Environ(), "WT_SHIM")
 	if removal.Repository.TrunkWorktree == removal.Repository.MainCheckout {

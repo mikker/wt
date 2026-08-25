@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -33,15 +34,32 @@ func (e *gitError) Unwrap() error { return e.err }
 // runGit runs git in dir and returns trimmed stdout. On failure the error is
 // a *gitError carrying stderr for good error messages.
 func runGit(dir string, args ...string) (string, error) {
+	return runGitWithOutput(dir, nil, args...)
+}
+
+// runGitWithOutput captures Git's output for return values and errors while
+// optionally streaming both stdout and stderr to output.
+func runGitWithOutput(dir string, output io.Writer, args ...string) (string, error) {
 	cmd := exec.Command("git", args...)
 	cmd.Dir = dir
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		return "", &gitError{args: args, dir: dir, stderr: stderr.String(), err: err}
+	var out, errOut bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &errOut
+	if output != nil {
+		cmd.Stdout = io.MultiWriter(output, &out)
+		cmd.Stderr = io.MultiWriter(output, &errOut)
 	}
-	return strings.TrimSpace(stdout.String()), nil
+	if err := cmd.Run(); err != nil {
+		return "", &gitError{args: args, dir: dir, stderr: errOut.String(), err: err}
+	}
+	return strings.TrimSpace(out.String()), nil
+}
+
+// runGitAction runs a mutating Git command verbosely. Its headline and Git's
+// output are shown on stderr, keeping stdout available for wt's own results.
+func runGitAction(dir, headline string, args ...string) (string, error) {
+	actionHeadline("%s", headline)
+	return runGitWithOutput(dir, stderr, args...)
 }
 
 // Worktree describes one entry from `git worktree list --porcelain`.
@@ -191,7 +209,7 @@ func deleteBranch(dir, name, trunk string) error {
 	if name == trunk {
 		return fmt.Errorf("refusing to delete trunk branch %q", name)
 	}
-	_, err := runGit(dir, "branch", "-d", name)
+	_, err := runGitAction(dir, fmt.Sprintf("Deleting branch %s", name), "branch", "-d", name)
 	return err
 }
 
@@ -207,7 +225,7 @@ func removeWorktree(mainCheckout string, w Worktree, trunk string, force bool) e
 		args = append(args, "--force")
 	}
 	args = append(args, w.Path)
-	_, err := runGit(mainCheckout, args...)
+	_, err := runGitAction(mainCheckout, fmt.Sprintf("Removing worktree %s", w.Path), args...)
 	return err
 }
 
@@ -264,6 +282,7 @@ func ensureWorktreesExcluded(mainCheckout, dir string) error {
 		}
 	}
 
+	actionHeadline("Excluding %s from Git status", dir)
 	if err := os.MkdirAll(filepath.Dir(excludePath), 0o755); err != nil {
 		return err
 	}
@@ -331,6 +350,6 @@ func gitConfigBool(dir, key string) bool {
 
 // setGitConfig sets a git config key/value in dir.
 func setGitConfig(dir, key, value string) error {
-	_, err := runGit(dir, "config", key, value)
+	_, err := runGitAction(dir, fmt.Sprintf("Setting %s to %s", key, value), "config", key, value)
 	return err
 }

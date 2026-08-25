@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 0.7
+
+- Commands now print ANSI-colored action headlines and `wt ls` status markers; mutating commands stream Git, hook, and command output by default.
 - The bundled agent skill now explains the project-local `.wt/worktrees` directory, location overrides, and lifecycle hooks.
 
 ## 0.6

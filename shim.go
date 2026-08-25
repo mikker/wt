@@ -60,6 +60,7 @@ func emitDirective(line string) bool {
 // write fails, falls back to printing path to stdout so the caller still
 // learns the destination instead of silently losing it.
 func emitCd(path string) {
+	actionHeadline("Entering %s", path)
 	if shimActive() && emitDirective("builtin cd -- "+quoteShell(path)) {
 		return
 	}
