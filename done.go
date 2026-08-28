@@ -181,21 +181,13 @@ func doneFlow(cmdName string, rm, keep bool) (*removalDetails, int) {
 		return nil, 1
 	}
 
-	if dirty, dirt, err := isDirty(trunkWorktree.Path); err != nil {
-		fmt.Fprintf(stderr, "%s: attempted `git status --porcelain` in %s, git refused: %v\n", cmdName, trunkWorktree.Path, err)
-		return nil, 2
-	} else if dirty {
-		fmt.Fprintf(stderr, "%s: trunk worktree %s has uncommitted changes, refusing to merge:\n%s\nCommit or stash there, then re-run `%s`.\n", cmdName, trunkWorktree.Path, dirt, cmdName)
-		return nil, 1
-	}
-
 	if _, err := runGitAction(cur.Path, fmt.Sprintf("Rebasing %s onto %s", name, trunk), "rebase", trunk); err != nil {
 		fmt.Fprintf(stderr, "%s: attempted `git rebase %s` in %s, git stopped with a conflict: %v\nResolve the conflicts, `git add` the fixed files, `git rebase --continue`, then re-run `%s`.\n", cmdName, trunk, cur.Path, err, cmdName)
 		return nil, 1
 	}
 
 	if _, err := runGitAction(trunkWorktree.Path, fmt.Sprintf("Fast-forwarding %s to %s", trunk, name), "merge", "--ff-only", name); err != nil {
-		fmt.Fprintf(stderr, "%s: attempted `git -C %s merge --ff-only %s`, git refused: %v\nThis shouldn't happen right after a clean rebase onto %s; inspect `git log` in both worktrees.\n", cmdName, trunkWorktree.Path, name, err, trunk)
+		fmt.Fprintf(stderr, "%s: attempted `git -C %s merge --ff-only %s`, git refused: %v\nGit preserves non-overlapping trunk edits automatically. Inspect `git status` in %s and commit, stash, or move only the changes that overlap this merge, then re-run `%s`.\n", cmdName, trunkWorktree.Path, name, err, trunkWorktree.Path, cmdName)
 		return nil, 1
 	}
 

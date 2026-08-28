@@ -45,6 +45,7 @@ wt create add-search -- pi
 wt ship
 ```
 
-Both commands stop rather than guess when a worktree is dirty, trunk has
-diverged, or a rebase conflicts. Resolve the condition and run the same
-command again.
+Both commands stop when the feature worktree is dirty, trunk has diverged, or a rebase conflicts.
+Uncommitted changes in the trunk worktree are preserved when they do not overlap the fast-forward;
+Git refuses the merge without changing them when they do overlap. Resolve the condition and run the
+same command again.

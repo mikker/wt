@@ -66,17 +66,61 @@ func TestDoneDirtyFeatureStop(t *testing.T) {
 	}
 }
 
-func TestDoneDirtyTrunkStop(t *testing.T) {
-	mainDir, _ := setupDoneRepo(t)
+func TestDonePreservesUntrackedTrunkChanges(t *testing.T) {
+	mainDir, wtPath := setupDoneRepo(t)
 	writeFile(t, filepath.Join(mainDir, "dirty.txt"), "x")
+
+	resetStdio(t)
+	code := cmdDone(nil)
+	if code != 0 {
+		t.Fatalf("cmdDone exit = %d, want 0; stderr = %s", code, stderrBuf.String())
+	}
+	if _, err := os.Stat(wtPath); !os.IsNotExist(err) {
+		t.Fatalf("worktree should be removed, stat err = %v", err)
+	}
+	if got, err := os.ReadFile(filepath.Join(mainDir, "dirty.txt")); err != nil || string(got) != "x" {
+		t.Errorf("untracked trunk change = %q, %v; want preserved", got, err)
+	}
+	if _, err := os.Stat(filepath.Join(mainDir, "feature.txt")); err != nil {
+		t.Errorf("trunk should contain merged feature.txt: %v", err)
+	}
+}
+
+func TestDonePreservesNonOverlappingTrackedTrunkChanges(t *testing.T) {
+	mainDir, _ := setupDoneRepo(t)
+	writeFile(t, filepath.Join(mainDir, "README.md"), "local trunk edit\n")
+
+	resetStdio(t)
+	if code := cmdDone(nil); code != 0 {
+		t.Fatalf("cmdDone exit = %d, want 0; stderr = %s", code, stderrBuf.String())
+	}
+	if got := testGit(t, mainDir, "status", "--short"); got != "M README.md" {
+		t.Errorf("trunk status = %q, want preserved README edit", got)
+	}
+	if got, err := os.ReadFile(filepath.Join(mainDir, "README.md")); err != nil || string(got) != "local trunk edit\n" {
+		t.Errorf("tracked trunk change = %q, %v; want preserved", got, err)
+	}
+}
+
+func TestDoneStopsWhenTrunkChangesOverlapMerge(t *testing.T) {
+	mainDir, wtPath := setupDoneRepo(t)
+	writeFile(t, filepath.Join(wtPath, "README.md"), "feature edit\n")
+	testGit(t, wtPath, "commit", "-am", "edit README")
+	writeFile(t, filepath.Join(mainDir, "README.md"), "local trunk edit\n")
 
 	resetStdio(t)
 	code := cmdDone(nil)
 	if code != 1 {
 		t.Fatalf("cmdDone exit = %d, want 1; stderr = %s", code, stderrBuf.String())
 	}
-	if !strings.Contains(stderrBuf.String(), "dirty.txt") {
-		t.Errorf("expected trunk dirt to be shown, got %q", stderrBuf.String())
+	if !strings.Contains(stderrBuf.String(), "overlap") {
+		t.Errorf("expected overlap guidance, got %q", stderrBuf.String())
+	}
+	if got, err := os.ReadFile(filepath.Join(mainDir, "README.md")); err != nil || string(got) != "local trunk edit\n" {
+		t.Errorf("overlapping trunk change = %q, %v; want untouched", got, err)
+	}
+	if _, err := os.Stat(wtPath); err != nil {
+		t.Fatalf("feature worktree should remain after refused merge: %v", err)
 	}
 }
 
