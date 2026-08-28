@@ -39,6 +39,17 @@ func TestProjectPersistent(t *testing.T) {
 	}
 }
 
+func TestProjectCarriesIgnoredIsOptIn(t *testing.T) {
+	dir := t.TempDir()
+	if projectCarriesIgnored(dir) {
+		t.Fatal("ignored files should not be carried by default")
+	}
+	writeFile(t, filepath.Join(dir, ".wt", "config"), "carry_ignored = true\n")
+	if !projectCarriesIgnored(dir) {
+		t.Fatal("carry_ignored = true should enable carrying")
+	}
+}
+
 func TestRunCreateHook_AbsentIsNoop(t *testing.T) {
 	dir := t.TempDir()
 	if err := runCreateHook(dir, "/base"); err != nil {

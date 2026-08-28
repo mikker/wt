@@ -1,0 +1,9 @@
+# .wt/ignore — gitignore-style patterns for ignored files that wt should not
+# carry into new worktrees.
+#
+# Examples:
+#
+# .env.production
+# tmp/
+# storage/*.sqlite3
+# *.sock

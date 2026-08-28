@@ -82,13 +82,13 @@ func TestInitScaffoldsHooksExecutable(t *testing.T) {
 		t.Fatalf("cmdInit exit = %d, want 0; stderr = %s", code, stderrBuf.String())
 	}
 
-	for _, name := range []string{"create", "destroy", "config"} {
+	for _, name := range []string{"create", "destroy", "config", "ignore"} {
 		path := filepath.Join(dir, ".wt", name)
 		info, err := os.Stat(path)
 		if err != nil {
 			t.Fatalf("expected %s to be written: %v", path, err)
 		}
-		if name != "config" && info.Mode().Perm()&0o111 == 0 {
+		if (name == "create" || name == "destroy") && info.Mode().Perm()&0o111 == 0 {
 			t.Errorf("%s should be executable, got mode %v", path, info.Mode())
 		}
 	}

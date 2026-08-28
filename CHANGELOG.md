@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Projects can opt into carrying ignored build caches and local files into new worktrees through copy-on-write reflinks on APFS and supported Linux filesystems. Set `carry_ignored = true` and use `.wt/ignore` for selective exclusions.
+
 ## 0.7
 
 - Commands now print ANSI-colored action headlines and `wt ls` status markers; mutating commands stream Git, hook, and command output by default.

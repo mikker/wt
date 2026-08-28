@@ -24,6 +24,9 @@ var exampleDestroyHook string
 //go:embed embedded/hooks/config
 var exampleConfigHook string
 
+//go:embed embedded/hooks/ignore
+var exampleIgnoreFile string
+
 // skillPointerLine is what `wt init` offers to append to CLAUDE.md/AGENTS.md.
 const skillPointerLine = "- To manage worktrees, run `wt skill` and follow it."
 
@@ -133,13 +136,14 @@ func cmdInit(args []string) int {
 	return 0
 }
 
-// scaffoldHooks writes example .wt/create, .wt/destroy, and .wt/config
+// scaffoldHooks writes example .wt/create, .wt/destroy, .wt/config, and .wt/ignore
 // files under dir, skipping (with a note) any that already exist.
 func scaffoldHooks(dir string) {
 	wtDir := filepath.Join(dir, ".wt")
 	writeExampleFile(filepath.Join(wtDir, "create"), exampleCreateHook, 0o755)
 	writeExampleFile(filepath.Join(wtDir, "destroy"), exampleDestroyHook, 0o755)
 	writeExampleFile(filepath.Join(wtDir, "config"), exampleConfigHook, 0o644)
+	writeExampleFile(filepath.Join(wtDir, "ignore"), exampleIgnoreFile, 0o644)
 }
 
 func writeExampleFile(path, content string, mode os.FileMode) {

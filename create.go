@@ -60,6 +60,14 @@ func cmdCreate(args []string) int {
 		fmt.Fprintf(stderr, "wt create: could not exclude worktrees directory %s from the main checkout: %v\n", worktreesRoot, err)
 		return 2
 	}
+	var ignored []string
+	if projectCarriesIgnored(mainCheckout) {
+		ignored, err = ignoredEntries(mainCheckout)
+		if err != nil {
+			fmt.Fprintf(stderr, "wt create: could not list ignored files to carry into the worktree: %v\n", err)
+			return 2
+		}
+	}
 	wtPath := filepath.Join(worktreesRoot, name)
 	if branchExists(mainCheckout, name) {
 		if _, err := runGitAction(mainCheckout, fmt.Sprintf("Creating worktree %s from existing branch %s", wtPath, name), "worktree", "add", wtPath, name); err != nil {
@@ -77,6 +85,13 @@ func cmdCreate(args []string) int {
 			fmt.Fprintf(stderr, "wt create: attempted `git worktree add %s -b %s %s`, git refused: %v. Check `git worktree list` and `git branch` for conflicts, then retry.\n", wtPath, name, trunk, err)
 			return 2
 		}
+	}
+
+	if err := carryIgnoredFiles(mainCheckout, wtPath, worktreesRoot, ignored); err != nil {
+		fmt.Fprintf(stderr, "wt create: worktree created, but ignored files could not be cloned: %v. The worktree was left in place; fix the issue or `wt rm %s` to abandon it.\n", err, name)
+		emitCd(wtPath)
+		emitExportWorktree(name)
+		return 1
 	}
 
 	if flags["persist"] {

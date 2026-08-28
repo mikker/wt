@@ -15,6 +15,7 @@ secrets, generated files, or teardown work in every new worktree.
 | `.wt/create` | Executable hook run in the new worktree. `$1` is the absolute main checkout path. |
 | `.wt/destroy` | Executable cleanup hook run before worktree removal. Failure warns but does not block removal. |
 | `.wt/config` | `key = value` configuration with `#` comments. |
+| `.wt/ignore` | Gitignore-style patterns for ignored files that should not be carried into new worktrees. |
 
 Hooks only run when executable:
 
@@ -27,6 +28,30 @@ chmod +x .wt/create .wt/destroy
 Worktrees live at `.wt/worktrees` by default. `wt` adds that directory to
 `.git/info/exclude`, keeping the main checkout clean without changing the
 project's `.gitignore`.
+
+By default, ignored files stay behind. To carry ignored files such as dependency
+and build caches into new worktrees, enable copy-on-write cloning in
+`.wt/config`:
+
+```ini
+carry_ignored = true
+```
+
+On APFS and Linux filesystems with reflink support, the files are cloned by
+reference and become independent when either copy is changed. On other
+filesystems, `wt` leaves the ordinary clean worktree in place.
+
+To leave only particular ignored files behind, add gitignore-style patterns to
+`.wt/ignore`:
+
+```gitignore
+.env.production
+tmp/
+storage/*.sqlite3
+*.sock
+```
+
+`.wt/ignore` only controls what `wt` carries; it does not change Git status.
 
 Set an absolute path or one relative to the main checkout to use another
 location:

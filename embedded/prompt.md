@@ -12,19 +12,21 @@ Do this:
    - `.wt/destroy` runs before `git worktree remove`, cwd = the worktree
      being removed. Must be executable. Failure warns but never blocks
      removal.
-   - `.wt/config` holds `key = value` lines (currently just
-     `persistent = true`).
+   - `.wt/config` holds `key = value` lines, including optional
+     `carry_ignored = true` to enable copy-on-write cloning of ignored files.
+   - `.wt/ignore` holds gitignore-style patterns for ignored files that must
+     not be carried into new worktrees.
+   - When enabled on supported filesystems, ignored files from the main
+     checkout are copy-on-write cloned before `.wt/create` runs.
 
 2. Inspect this project and write `.wt/create` so a brand-new worktree can
    run the app/tests immediately. Typical things it needs to do:
    - Install dependencies (`bundle install`, `npm ci`, `go mod download`,
-     etc.) if they aren't shared across worktrees already.
-   - Copy secrets or keys that exist in the main checkout but aren't in git
-     (e.g. `config/master.key`, `.env`) — read them from `$1`, the main
-     checkout path passed as the first argument.
+     etc.) when they were not already carried in by a reflink.
+   - Copy secrets or keys that are still absent (e.g. `config/master.key`,
+     `.env`) from `$1`, the main checkout path passed as the first argument.
    - Symlink or otherwise redirect any state you want shared rather than
-     duplicated per worktree (e.g. a `node_modules` symlink back to the main
-     checkout, a shared `.env`, a shared local database).
+     isolated per worktree (e.g. a shared local database).
    - Anything else `git worktree add` doesn't give you for free.
 
    Make `.wt/create` executable (`chmod +x .wt/create`).

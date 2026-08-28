@@ -80,3 +80,10 @@ func parseConfig(dir string) map[string]string {
 func projectPersistent(dir string) bool {
 	return parseConfig(dir)["persistent"] == "true"
 }
+
+// projectCarriesIgnored reports whether ignored files should be reflinked
+// into new worktrees. Carrying is opt-in because ignored files can include
+// machine-local state that does not belong in every worktree.
+func projectCarriesIgnored(dir string) bool {
+	return parseConfig(dir)["carry_ignored"] == "true"
+}

@@ -5,6 +5,11 @@
 #
 # worktrees = ../shared-worktrees
 #
+# Uncomment to copy-on-write clone Git-ignored files into new worktrees on
+# supported filesystems. Use .wt/ignore to exclude particular ignored files.
+#
+# carry_ignored = true
+#
 # Uncomment to keep this project's worktrees around after `wt done`/`wt
 # ship` instead of tearing them down (useful when `.wt/create` is slow
 # enough that spinning up a fresh worktree per task hurts). `wt done`/`wt
