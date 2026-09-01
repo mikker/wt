@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added a checksum-verified curl installer for macOS and Linux releases.
+
 ## 0.8
 
 - Projects can opt into carrying ignored build caches and local files into new worktrees through copy-on-write reflinks on APFS and supported Linux filesystems. Set `carry_ignored = true` and use `.wt/ignore` for selective exclusions.

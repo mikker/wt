@@ -21,6 +21,20 @@ pushed main</code></pre>
 Latest release: **{{ site.version }}**
 
 ```sh
+curl -fsSL https://wt.fut.sh/install.sh | sh
+```
+
+Installs the latest macOS or Linux release to `~/.local/bin`. Set
+`WT_INSTALL_DIR` to choose another location. Release binaries support arm64
+and x86_64. The installer needs `curl`, `tar`, and either `sha256sum` or
+`shasum`; it prints a PATH reminder when needed.
+
+Re-run the installer to upgrade, set `WT_VERSION` to install a specific tag,
+or remove the installed `wt` binary to uninstall.
+
+Or install on macOS with Homebrew:
+
+```sh
 brew install mikker/tap/wt
 ```
 
