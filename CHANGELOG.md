@@ -4,6 +4,7 @@
 
 - Added a checksum-verified curl installer for macOS and Linux releases.
 - `wt done` and `wt ship` now preserve unrelated uncommitted trunk changes instead of requiring a clean trunk worktree.
+- Homebrew installs no longer emit a warning about the deprecated `postflight` hook.
 
 ## 0.8
 

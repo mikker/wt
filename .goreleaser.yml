@@ -47,9 +47,11 @@ homebrew_casks:
     homepage: https://github.com/mikker/wt
     description: Ephemeral Git worktree manager
     commit_msg_template: "Update wt cask to {{ .Tag }}"
-    hooks:
-      post:
-        install: |
-          if OS.mac?
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/wt"]
-          end
+    # Use Homebrew's declarative steps DSL instead of the deprecated postflight
+    # hook. Move this to hooks.post.install_steps once GoReleaser supports it.
+    custom_block: |
+      postflight_steps do
+        on_macos do
+          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ "{{staged_path}}" }}/wt"], must_succeed: false
+        end
+      end
