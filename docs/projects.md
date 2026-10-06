@@ -10,12 +10,16 @@ permalink: /projects/
 Zero configuration works. Run `wt init` when a repository needs dependencies,
 secrets, generated files, or teardown work in every new worktree.
 
+<div class="wide-table" markdown="1">
+
 | File | Contract |
 |---|---|
 | `.wt/create` | Executable hook run in the new worktree. `$1` is the absolute main checkout path. |
 | `.wt/destroy` | Executable cleanup hook run before worktree removal. Failure warns but does not block removal. |
 | `.wt/config` | `key = value` configuration with `#` comments. |
 | `.wt/ignore` | Gitignore-style patterns for ignored files that should not be carried into new worktrees. |
+
+</div>
 
 Hooks only run when executable:
 

@@ -1,3 +1,5 @@
+@import url("preflight.css");
+
 :root {
   color-scheme: light;
   --paper: #f7f7f7;
@@ -6,15 +8,8 @@
   --syntax: #00f;
   --line: #c9c9c9;
   --code: #eeeeee;
-  --measure: 76ch;
-  --leading: 20px;
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  line-height: inherit;
+  --measure: 86ch;
+  --leading: 1.66;
 }
 
 html {
@@ -23,16 +18,16 @@ html {
 }
 
 body {
-  margin: 0;
   background: var(--paper);
   color: var(--ink);
   font-family:
     "SFMono-Regular", "Cascadia Code", "Roboto Mono", ui-monospace, monospace;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 a {
   color: inherit;
+  text-decoration: underline;
   text-decoration-color: var(--accent);
   text-underline-offset: 0.2em;
 }
@@ -43,7 +38,7 @@ a:focus-visible {
 }
 
 .site-header {
-  min-height: 4lh;
+  min-height: 3lh;
   padding: 1lh clamp(2ch, 4vw, 7ch);
   border-bottom: 1px solid var(--line);
   display: flex;
@@ -53,7 +48,7 @@ a:focus-visible {
 }
 
 .wordmark {
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-decoration: none;
 }
@@ -65,8 +60,8 @@ a:focus-visible {
 
 .shell {
   display: grid;
-  grid-template-columns: minmax(25ch, 33ch) minmax(0, 1fr);
-  min-height: calc(100vh - 4lh);
+  grid-template-columns: minmax(25ch, 28ch) minmax(0, 1fr);
+  min-height: calc(100vh - 3lh);
 }
 
 aside {
@@ -91,15 +86,12 @@ aside a[aria-current="page"]::before {
 }
 
 main {
-  width: min(100%, calc(var(--measure) + 14ch));
-  padding: 3lh 7ch 5lh;
+  padding: 2lh 7ch 5lh;
 }
 
 h1,
 h2,
 h3 {
-  font-size: inherit;
-  letter-spacing: -0.025em;
   text-wrap: balance;
 }
 
@@ -149,21 +141,18 @@ pre {
   max-width: var(--measure);
 }
 
-li + li {
-  margin-top: 0;
-}
-
 code {
-  padding: 0 1ch;
   background: var(--code);
   font: inherit;
 }
 
 pre {
+  max-width: 100%;
   margin: 1lh 0;
   padding: 1lh 2ch;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
+  overflow-x: auto;
+  /* overflow-wrap: anywhere; */
+  /* white-space: pre-wrap; */
   background: var(--code);
 }
 
@@ -182,16 +171,15 @@ table {
 }
 
 .wide-table {
-  width: min(152ch, calc(100vw - 47ch));
+  width: 100%;
   max-width: 152ch;
   overflow-x: auto;
-  overscroll-behavior-inline: contain;
+  /* overscroll-behavior-inline: contain; */
 }
 
 .wide-table table {
-  width: 152ch;
+  min-width: var(--measure);
   max-width: none;
-  margin-bottom: 0;
 }
 
 th,
@@ -206,6 +194,7 @@ th {
   font-weight: 700;
 }
 
+
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
@@ -217,6 +206,10 @@ th {
 }
 
 @media (max-width: 760px) {
+  body {
+    font-size: 12px;
+  }
+
   .site-header {
     align-items: flex-start;
     flex-direction: column;
@@ -239,11 +232,6 @@ th {
 
   main {
     padding: 2lh 2ch 4lh;
-  }
-
-  .wide-table {
-    width: 100%;
-    max-width: 100%;
   }
 }
 
